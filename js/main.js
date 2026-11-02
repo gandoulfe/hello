@@ -748,7 +748,7 @@
       ares: { name: 'Arès', hue: 350, power: 'Lame maudite', desc: 'Chaque clic tranche l’air.' },
       dionysos: { name: 'Dionysos', hue: null, power: 'Ivresse festive', desc: 'Chaque clic fait pleuvoir le raisin.' },
     };
-    let progress = 0, overlay, flash, fx, fxCtx, effects = [], lastFlash = 0, opener = null;
+    let overlay, flash, fx, fxCtx, effects = [], lastFlash = 0, opener = null;
 
     const icon = {
       zeus: '<path d="M56 10 28 54h20l-8 36 32-48H50z"/><circle cx="50" cy="50" r="46"/>',
@@ -916,12 +916,31 @@
       spawnEffect(e.clientX, e.clientY);
     });
 
+    // Tampon des dernières entrées : tolère les touches en trop (↑ ↑ ↑ ↓ ↓…)
+    let buffer = [];
+    const push = (key) => {
+      buffer = [...buffer, key].slice(-CODE.length);
+      if (buffer.join() === CODE.join() && (!overlay || overlay.hidden)) { buffer = []; open(); }
+    };
     addEventListener('keydown', (e) => {
       if (e.target.closest?.('input, textarea')) return;
-      const key = e.key.toLowerCase();
-      progress = key === CODE[progress] ? progress + 1 : key === CODE[0] ? 1 : 0;
-      if (progress === CODE.length) { progress = 0; open(); }
+      push(e.key.toLowerCase());
     });
+
+    // Mobile : glisser ↑ ↑ ↓ ↓ ← → ← → puis deux tapotements (B, A)
+    let start = null;
+    addEventListener('touchstart', (e) => { const t = e.touches[0]; start = { x: t.clientX, y: t.clientY }; }, { passive: true });
+    addEventListener('touchend', (e) => {
+      if (!start) return;
+      const t = e.changedTouches[0];
+      const dx = t.clientX - start.x, dy = t.clientY - start.y;
+      start = null;
+      if (Math.max(Math.abs(dx), Math.abs(dy)) < 30) {
+        const i = buffer.length;
+        return push(buffer.join().endsWith('arrowleft,arrowright') && i ? 'b' : buffer[i - 1] === 'b' ? 'a' : 'tap');
+      }
+      push(Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'arrowright' : 'arrowleft') : dy > 0 ? 'arrowdown' : 'arrowup');
+    }, { passive: true });
   })();
 
   /* ==========================================================================
