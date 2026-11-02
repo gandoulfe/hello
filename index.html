@@ -6,13 +6,17 @@
   <title>David Nazar — Développeur Front-End</title>
   <meta name="description" content="David Nazar, développeur front-end à Lyon depuis 2008. Intégration web, composants accessibles et performants, micro-interactions et animations.">
   <meta name="theme-color" content="#0a0607">
+  <meta name="color-scheme" content="dark">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%230a0607'/%3E%3Cpath d='M50 14 83 71H17Z M50 86 17 29h66Z' fill='none' stroke='%23d8b25a' stroke-width='4'/%3E%3C/svg%3E">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400..900&family=Cormorant+Garamond:ital,wght@1,400;1,500&family=Inter+Tight:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="preload" href="fonts/cinzel.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="fonts/inter-tight.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="css/fonts.css">
   <link rel="stylesheet" href="css/style.css">
+  <script>try { if (localStorage.getItem('dn-calm') === '1') document.documentElement.classList.add('is-calm'); } catch (e) {}</script>
 </head>
 <body class="is-loading" data-barba="wrapper">
+  <a class="skip-link" href="#main">Aller au contenu</a>
+  <div class="sr-only" aria-live="polite" aria-atomic="true" data-announcer></div>
   <canvas id="embers" aria-hidden="true"></canvas>
   <div class="vignette" aria-hidden="true"></div>
   <div class="grain" aria-hidden="true"></div>
@@ -52,21 +56,27 @@
   </div>
 
   <header class="nav">
-    <a href="index.html" class="nav__logo" data-magnetic aria-label="Accueil">
-      <svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="18"/><path d="M20 5 33 27H7Z"/><path d="M20 35 7 13h26Z"/></svg>
-      <span>NAZAR</span>
+    <a href="index.html" class="nav__logo" data-magnetic aria-label="David Nazar, accueil">
+      <svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18"/><path d="M20 5 33 27H7Z"/><path d="M20 35 7 13h26Z"/></svg>
+      <span>DAVID NAZAR</span>
     </a>
-    <nav class="nav__links" aria-label="Navigation principale">
-      <span class="nav__pill" aria-hidden="true"></span>
-      <a class="nav__link" data-ns="home" href="index.html"><small>I</small>Accueil</a>
-      <a class="nav__link" data-ns="projets" href="projets.html"><small>II</small>Projets</a>
-      <a class="nav__link" data-ns="apropos" href="apropos.html"><small>III</small>À propos</a>
-      <a class="nav__link" data-ns="contact" href="contact.html"><small>IV</small>Contact</a>
-    </nav>
+    <div class="nav__right">
+      <nav class="nav__links" aria-label="Navigation principale">
+        <span class="nav__pill" aria-hidden="true"></span>
+        <a class="nav__link" data-ns="home" href="index.html"><small aria-hidden="true">I</small>Accueil</a>
+        <a class="nav__link" data-ns="projets" href="projets.html"><small aria-hidden="true">II</small>Projets</a>
+        <a class="nav__link" data-ns="apropos" href="apropos.html"><small aria-hidden="true">III</small>À propos</a>
+        <a class="nav__link" data-ns="contact" href="contact.html"><small aria-hidden="true">IV</small>Contact</a>
+      </nav>
+      <button class="nav__calm" type="button" aria-pressed="false" data-calm-toggle data-magnetic>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path class="i-pause" d="M8 5v14M16 5v14"/><path class="i-play" d="M7 4.5v15l12-7.5z"/></svg>
+        <span class="sr-only">Mettre en pause les animations</span>
+      </button>
+    </div>
     <span class="nav__progress" aria-hidden="true"></span>
   </header>
 
-  <main class="page" data-barba="container" data-barba-namespace="home">
+  <main id="main" tabindex="-1" class="page" data-barba="container" data-barba-namespace="home">
 
     <section class="hero">
       <div class="hero__glow" data-depth="0.4"></div>
@@ -178,6 +188,15 @@
               <p class="boon__desc"><b>Figma</b> et composants accessibles : <b>personne</b> ne reste coincé aux Enfers.</p>
             </div>
           </article>
+          <article class="boon boon--chaos" data-tilt>
+            <div class="boon__rarity"><span>Pacte du Chaos</span><span>✦✦✦✦✦</span></div>
+            <svg class="boon__icon" viewBox="0 0 100 100"><path d="M50 14 58 42 86 50 58 58 50 86 42 58 14 50 42 42Z"/><circle cx="50" cy="50" r="10"/><circle cx="50" cy="50" r="44"/></svg>
+            <div>
+              <div class="boon__god">Chaos · IA générative</div>
+              <h3 class="boon__name">Vibe coding</h3>
+              <p class="boon__desc"><b>Claude Code</b> comme compagnon d'armes : j'accélère, je garde la main sur la qualité.</p>
+            </div>
+          </article>
         </div>
       </div>
     </section>
@@ -189,6 +208,36 @@
           <div class="stat" data-reveal><div class="stat__value" data-count="3">0</div><div class="stat__label">Maisons servies</div></div>
           <div class="stat" data-reveal><div class="stat__value" data-count="10">0</div><div class="stat__label">Marques de référence</div></div>
           <div class="stat" data-reveal><div class="stat__value" data-count="16">0</div><div class="stat__label">Compétences</div></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section chaos">
+      <div class="wrap chaos__grid">
+        <div>
+          <span class="eyebrow" data-reveal>Le pacte du Chaos</span>
+          <h2 class="h2" data-split-lines style="margin-top:24px">Codé main dans la main avec <span class="serif gold">l’IA</span></h2>
+          <p class="lead" data-reveal style="margin-top:28px">Je travaille avec l’IA générative au quotidien, notamment <strong>Claude Code</strong> en mode <em>vibe coding</em> : je décris l’intention, l’IA propose, et je garde la main sur la qualité.</p>
+          <ol class="chaos__steps">
+            <li data-reveal><b>I. Cadrer</b><span>Intention, contraintes, références : un brief clair vaut mille prompts.</span></li>
+            <li data-reveal><b>II. Piloter</b><span>Itérations courtes, corrections au fil de l’eau, choix techniques assumés.</span></li>
+            <li data-reveal><b>III. Vérifier</b><span>Relecture du code, test dans le navigateur, passes accessibilité et écoconception.</span></li>
+          </ol>
+          <p class="chaos__proof" data-reveal>✦ Ce site lui-même a été construit ainsi, en vibe coding avec Claude Code.</p>
+        </div>
+        <div class="term" data-terminal data-reveal>
+          <div class="term__bar" aria-hidden="true"><i></i><i></i><i></i><span>~/portfolio — claude</span></div>
+          <div class="term__body">
+            <p class="term__line term__line--cmd"><span class="term__prompt" aria-hidden="true">$</span> claude</p>
+            <p class="term__line term__line--ai">✦ Que construisons-nous aujourd’hui ?</p>
+            <p class="term__line term__line--user">› Mon portfolio : transitions façon Hades, micro-interactions façon Apple</p>
+            <p class="term__line">● Barba.js + GSAP : transitions entre les pages</p>
+            <p class="term__line">● Braises, loader, curseur magnétique, Flip</p>
+            <p class="term__line">● Passe accessibilité : focus, annonces, mode calme</p>
+            <p class="term__line">● Passe écoconception : polices locales, 30 i/s</p>
+            <p class="term__line term__line--ok">✓ Déployé sur GitHub Pages</p>
+            <p class="term__line term__line--user">› Ajoute un code Konami avec un truc génial<span class="term__caret" aria-hidden="true"></span></p>
+          </div>
         </div>
       </div>
     </section>
@@ -206,6 +255,7 @@
           <span class="marquee__item">WordPress</span><span class="marquee__sep">✦</span>
           <span class="marquee__item">Drupal</span><span class="marquee__sep">✦</span>
           <span class="marquee__item">Webpack</span><span class="marquee__sep">✦</span>
+          <span class="marquee__item">Claude Code</span><span class="marquee__sep">✦</span>
         </div>
       </div>
     </div>
@@ -232,12 +282,12 @@
 
   <div class="toast" role="status" aria-live="polite"></div>
 
-  <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/SplitText.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/Flip.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/lenis@1.3.4/dist/lenis.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@barba/core@2.10.3/dist/barba.umd.js"></script>
-  <script src="js/main.js"></script>
+  <script src="js/vendor/gsap.min.js" defer></script>
+  <script src="js/vendor/ScrollTrigger.min.js" defer></script>
+  <script src="js/vendor/SplitText.min.js" defer></script>
+  <script src="js/vendor/Flip.min.js" defer></script>
+  <script src="js/vendor/lenis.min.js" defer></script>
+  <script src="js/vendor/barba.umd.js" defer></script>
+  <script src="js/main.js" defer></script>
 </body>
 </html>

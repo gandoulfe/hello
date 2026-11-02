@@ -9,12 +9,19 @@
 
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const fine = matchMedia('(hover: hover) and (pointer: fine)').matches;
+  const saveData = !!navigator.connection?.saveData;
+  const root = document.documentElement;
+  const isCalm = () => root.classList.contains('is-calm');
+  const store = {
+    get: (k) => { try { return localStorage.getItem(k); } catch { return null; } },
+    set: (k, v) => { try { localStorage.setItem(k, v); } catch {} },
+  };
   const $ = (s, c = document) => c.querySelector(s);
   const $$ = (s, c = document) => [...c.querySelectorAll(s)];
 
   const ROUTES = {
     home: { num: 'I', title: 'Accueil', hint: '— retour à la surface —' },
-    projets: { num: 'II', title: 'Les Chambres', hint: '— onze portes vous attendent —' },
+    projets: { num: 'II', title: 'Les Chambres', hint: '— douze portes vous attendent —' },
     apropos: { num: 'III', title: 'Chroniques', hint: '— le récit commence —' },
     contact: { num: 'IV', title: 'Le Styx', hint: '— le passeur vous attend —' },
   };
@@ -36,16 +43,18 @@
   const scrollTop = (immediate) =>
     lenis ? lenis.scrollTo(0, { immediate, force: true, duration: 1.6 }) : scrollTo({ top: 0, behavior: immediate ? 'auto' : 'smooth' });
 
-  /* ---------- Braises (canvas) ---------- */
-  const emberState = { boost: 0 };
+  /* ---------- Braises (canvas) ----------
+     Sobriété : rendu en 1x et à 30 i/s, extinction après inactivité, coupées en mode calme / économie de données */
+  const emberState = { boost: 0, hue: null, rainbow: false };
   const burst = (v = 1) => gsap.fromTo(emberState, { boost: v }, { boost: 0, duration: 2.2, ease: 'power2.out', overwrite: true });
 
-  (() => {
+  const embers = (() => {
     const canvas = $('#embers');
     const ctx = canvas.getContext('2d');
-    const count = reduce ? 0 : innerWidth < 700 ? 45 : 110;
+    const count = reduce || saveData ? 0 : innerWidth < 700 ? 40 : 90;
     const mouse = { x: -999, y: -999 };
-    let w, h;
+    const IDLE_MS = 12000;
+    let w, h, frame = 0, lastInput = performance.now(), running = false;
     const parts = [];
 
     const spawn = (p, anywhere) => Object.assign(p, {
@@ -56,29 +65,30 @@
       r: 0.6 + Math.random() * 2.2,
       life: 0,
       max: 300 + Math.random() * 500,
-      hue: 12 + Math.random() * 32,
+      hue: emberState.rainbow ? Math.random() * 360 : (emberState.hue ?? 12) + Math.random() * 32,
       ph: Math.random() * 6.28,
+      dead: false,
     });
 
     const resize = () => {
-      const dpr = Math.min(devicePixelRatio, 2);
       w = innerWidth; h = innerHeight;
-      canvas.width = w * dpr; canvas.height = h * dpr;
-      canvas.style.width = w + 'px'; canvas.style.height = h + 'px';
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      canvas.width = w; canvas.height = h;
     };
     resize();
     addEventListener('resize', resize);
-    addEventListener('pointermove', (e) => { mouse.x = e.clientX; mouse.y = e.clientY; }, { passive: true });
     for (let i = 0; i < count; i++) parts.push(spawn({}, true));
-    if (!count) return;
 
-    gsap.ticker.add(() => {
-      const speed = 1 + emberState.boost * 6;
+    const draw = () => {
+      if (++frame % 2) return; // 30 i/s suffisent pour des braises
+      const idle = performance.now() - lastInput > IDLE_MS;
+      const speed = (1 + emberState.boost * 6) * 2;
+      let alive = 0;
       ctx.clearRect(0, 0, w, h);
       ctx.globalCompositeOperation = 'lighter';
       for (const p of parts) {
-        p.life++; p.ph += 0.03;
+        if (p.dead) continue;
+        alive++;
+        p.life += 2; p.ph += 0.06;
         const dx = p.x - mouse.x, dy = p.y - mouse.y, d2 = dx * dx + dy * dy;
         if (d2 < 14400) {
           const d = Math.sqrt(d2) + 1, f = (1 - d2 / 14400) * 0.6;
@@ -88,7 +98,11 @@
         p.vy += (-(0.3 + p.r * 0.25) - p.vy) * 0.02;
         p.x += (p.vx + Math.sin(p.ph) * 0.35) * speed;
         p.y += p.vy * speed;
-        if (p.y < -20 || p.life > p.max || p.x < -20 || p.x > w + 20) spawn(p);
+        if (p.y < -20 || p.life > p.max || p.x < -20 || p.x > w + 20) {
+          if (idle) { p.dead = true; continue; }
+          spawn(p);
+        }
+        if (emberState.rainbow) p.hue = (p.hue + 2) % 360;
         const a = Math.sin(Math.min(p.life / p.max, 1) * Math.PI) * (0.55 + 0.45 * Math.sin(p.ph * 3));
         ctx.fillStyle = `hsla(${p.hue},100%,58%,${a * 0.22})`;
         ctx.beginPath(); ctx.arc(p.x, p.y, p.r * 4, 0, 6.283); ctx.fill();
@@ -96,7 +110,29 @@
         ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, 6.283); ctx.fill();
       }
       ctx.globalCompositeOperation = 'source-over';
-    });
+      if (!alive) stop(); // toutes les braises sont éteintes : plus aucun calcul
+    };
+
+    function start() {
+      if (running || !count || isCalm()) return;
+      running = true;
+      gsap.ticker.add(draw);
+    }
+    function stop() {
+      running = false;
+      gsap.ticker.remove(draw);
+      ctx.clearRect(0, 0, w, h);
+    }
+    const wake = () => {
+      lastInput = performance.now();
+      if (running || isCalm()) return;
+      parts.forEach((p) => { if (p.dead) spawn(p); });
+      start();
+    };
+    addEventListener('pointermove', (e) => { mouse.x = e.clientX; mouse.y = e.clientY; wake(); }, { passive: true });
+    ['scroll', 'keydown', 'touchstart'].forEach((ev) => addEventListener(ev, wake, { passive: true }));
+    start();
+    return { start, stop, wake, respawn: () => parts.forEach((p) => spawn(p, true)) };
   })();
 
   /* ---------- Curseur ---------- */
@@ -172,6 +208,26 @@
     }
   }, true);
 
+  /* ---------- Annonces lecteur d'écran ---------- */
+  const announcer = $('[data-announcer]');
+  const announce = (msg) => { announcer.textContent = ''; setTimeout(() => { announcer.textContent = msg; }, 60); };
+
+  /* ---------- Mode calme : met en pause tout ce qui bouge en continu (WCAG 2.2.2) ---------- */
+  const calmBtn = $('[data-calm-toggle]');
+  const calmListeners = new Set();
+  function setCalm(on, silent) {
+    root.classList.toggle('is-calm', on);
+    calmBtn.setAttribute('aria-pressed', String(on));
+    $('.sr-only', calmBtn).textContent = on ? 'Relancer les animations' : 'Mettre en pause les animations';
+    calmBtn.title = on ? 'Relancer les animations' : 'Mettre en pause les animations';
+    on ? embers.stop() : embers.wake();
+    calmListeners.forEach((fn) => fn(on));
+    store.set('dn-calm', on ? '1' : '0');
+    if (!silent) announce(on ? 'Animations en pause' : 'Animations relancées');
+  }
+  setCalm(isCalm(), true);
+  calmBtn.addEventListener('click', () => setCalm(!isCalm()));
+
   /* ---------- Toast ---------- */
   const toastEl = $('.toast');
   gsap.set(toastEl, { y: 0, yPercent: 220 });
@@ -199,8 +255,19 @@
       tilt(c);
       scramble(c);
       counters(c);
+      pauseOffscreen(c);
       PAGES[ns]?.(c);
     }, c);
+  }
+
+  // Sobriété : les animations CSS en boucle (sceaux, médaillon) s'arrêtent hors écran
+  function pauseOffscreen(c) {
+    const els = $$('.hero, .medallion', c);
+    if (!els.length) return;
+    const io = new IntersectionObserver((entries) =>
+      entries.forEach((e) => e.target.classList.toggle('is-offscreen', !e.isIntersecting)));
+    els.forEach((el) => io.observe(el));
+    cleanups.push(() => io.disconnect());
   }
 
   function destroyPage() {
@@ -326,6 +393,7 @@
   function scramble(c) {
     $$('[data-scramble]', c).forEach((el) => {
       const final = el.textContent;
+      el.setAttribute('aria-label', final); // le texte brouillé ne doit pas être lu
       const o = { p: 0 };
       on(el, 'pointerenter', () => {
         gsap.fromTo(o, { p: 0 }, {
@@ -342,6 +410,12 @@
 
   function counters(c) {
     $$('[data-count]', c).forEach((el) => {
+      // Valeur finale lue directement, le compteur animé est masqué aux lecteurs d'écran
+      const sr = document.createElement('span');
+      sr.className = 'sr-only';
+      sr.textContent = el.dataset.count;
+      el.setAttribute('aria-hidden', 'true');
+      el.after(sr);
       const o = { v: 0 };
       gsap.to(o, {
         v: +el.dataset.count, duration: 2.4, ease: 'expo.out',
@@ -357,10 +431,11 @@
     let active = btns.find((b) => b.classList.contains('is-active'));
     const move = (b, duration = 0.7) => gsap.to(segPill, { x: b.offsetLeft, width: b.offsetWidth, duration, ease: 'expo.out' });
     move(active, 0);
+    btns.forEach((x) => x.setAttribute('aria-pressed', String(x === active)));
     btns.forEach((b) => on(b, 'click', () => {
       if (b === active) return;
       active = b;
-      btns.forEach((x) => x.classList.toggle('is-active', x === b));
+      btns.forEach((x) => { x.classList.toggle('is-active', x === b); x.setAttribute('aria-pressed', String(x === b)); });
       move(b);
       onChange(b.dataset.value);
     }));
@@ -385,6 +460,17 @@
         scrollTrigger: { trigger: manifesto, start: 'top 80%', end: 'bottom 45%', scrub: true },
       });
 
+      // Terminal : les lignes se « tapent » au scroll (le texte reste entier dans le DOM pour les lecteurs d'écran)
+      const term = $('[data-terminal]', c);
+      if (term) {
+        const lines = $$('.term__line', term);
+        const tl = gsap.timeline({ scrollTrigger: { trigger: term, start: 'top 75%', once: true } });
+        lines.forEach((l) => {
+          const n = Math.max(8, Math.round(l.textContent.length / 2));
+          tl.fromTo(l, { clipPath: 'inset(0 100% 0 0)' }, { clipPath: 'inset(0 0% 0 0)', duration: n * 0.028, ease: `steps(${n})` }, '+=0.12');
+        });
+      }
+
       // Bénédictions : scroll horizontal épinglé
       const mm = gsap.matchMedia();
       cleanups.push(() => mm.revert());
@@ -408,9 +494,12 @@
       track.appendChild(clone);
       const loop = gsap.to(track, { xPercent: -50, ease: 'none', duration: 30, repeat: -1 });
       loop.totalTime(loop.duration() * 100);
-      ScrollTrigger.create({
+      // Sobriété : la boucle ne tourne que visible à l'écran, et jamais en mode calme
+      const marqueeST = ScrollTrigger.create({
         trigger: track, start: 'top bottom', end: 'bottom top',
+        onToggle: (self) => loop.paused(!self.isActive || isCalm()),
         onUpdate(self) {
+          if (isCalm()) return;
           const boost = 1 + Math.min(Math.abs(self.getVelocity()) / 250, 6);
           gsap.to(loop, {
             timeScale: self.direction * boost, duration: 0.2, overwrite: true,
@@ -418,6 +507,10 @@
           });
         },
       });
+      loop.paused(!marqueeST.isActive || isCalm());
+      const onCalm = (calm) => loop.paused(calm || !marqueeST.isActive);
+      calmListeners.add(onCalm);
+      cleanups.push(() => calmListeners.delete(onCalm));
     },
 
     projets(c) {
@@ -427,6 +520,8 @@
       segmented($('[data-filter]', c), (value) => {
         const state = Flip.getState(items, { props: 'opacity' });
         items.forEach((it) => { it.style.display = value === 'all' || it.dataset.cat === value ? '' : 'none'; });
+        const shown = items.filter((it) => it.style.display !== 'none').length;
+        announce(`${shown} référence${shown > 1 ? 's' : ''} affichée${shown > 1 ? 's' : ''}`);
         Flip.from(state, {
           duration: 0.9, ease: 'expo.inOut', absolute: true, stagger: 0.03,
           onEnter: (els) => gsap.fromTo(els, { opacity: 0, y: 50 }, { opacity: 1, y: 0, duration: 0.8, delay: 0.25, ease: 'expo.out' }),
@@ -439,6 +534,7 @@
         hidePreview();
         const state = Flip.getState(items);
         works.classList.toggle('is-grid', value === 'grid');
+        announce(value === 'grid' ? 'Affichage en grille' : 'Affichage en liste');
         Flip.from(state, { duration: 1.1, ease: 'expo.inOut', absolute: true, stagger: 0.035, onComplete: () => ScrollTrigger.refresh() });
         if (value === 'grid') gsap.from($$('.work__art', works), { opacity: 0, scale: 0.8, duration: 1, delay: 0.45, stagger: 0.05, ease: 'expo.out' });
       });
@@ -482,11 +578,8 @@
         onLeaveBack: () => ch.classList.remove('is-lit'),
       }));
 
-      $$('.weapon', c).forEach((wp) => {
-        const flip = () => wp.classList.toggle('is-flipped');
-        if (!fine) on(wp, 'click', flip);
-        on(wp, 'keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); flip(); } });
-      });
+      // Les deux faces restent lisibles par les lecteurs d'écran ; au clavier, le focus retourne la carte (CSS)
+      if (!fine) $$('.weapon', c).forEach((wp) => on(wp, 'click', () => wp.classList.toggle('is-flipped')));
     },
 
     contact(c) {
@@ -514,18 +607,37 @@
         msg.style.height = 'auto';
         msg.style.height = msg.scrollHeight + 'px';
       });
-      on(form, 'input', (e) => e.target.closest('.field')?.classList.remove('is-error'));
+      // Messages d'erreur reliés aux champs (aria-describedby / aria-invalid)
+      const fields = $$('.field', form).map((f) => {
+        const input = $('input, textarea', f);
+        const err = document.createElement('span');
+        err.className = 'field__error';
+        err.id = input.id + '-error';
+        f.appendChild(err);
+        input.setAttribute('aria-describedby', err.id);
+        return { f, input, err };
+      });
+      const setError = ({ f, input, err }, msg) => {
+        f.classList.toggle('is-error', !!msg);
+        input.setAttribute('aria-invalid', String(!!msg));
+        err.textContent = msg || '';
+      };
+      on(form, 'input', (e) => { const fd = fields.find((x) => x.input === e.target); if (fd) setError(fd, ''); });
       on(form, 'submit', (e) => {
         e.preventDefault();
         if (btn.classList.contains('is-sending')) return;
-        let ok = true;
-        $$('.field', form).forEach((f) => {
-          const input = $('input, textarea', f);
-          const valid = input.checkValidity() && input.value.trim() !== '';
-          f.classList.toggle('is-error', !valid);
-          if (!valid) { ok = false; gsap.fromTo(f, { x: -12 }, { x: 0, duration: 0.8, ease: 'elastic.out(1, .3)' }); }
+        const invalid = fields.filter((fd) => {
+          const { input } = fd;
+          const msg = !input.value.trim() ? 'Ce champ est obligatoire.'
+            : input.type === 'email' && !input.checkValidity() ? 'Adresse e-mail invalide (ex. : nom@domaine.fr).' : '';
+          setError(fd, msg);
+          if (msg && !reduce) gsap.fromTo(fd.f, { x: -12 }, { x: 0, duration: 0.8, ease: 'elastic.out(1, .3)' });
+          return msg;
         });
-        if (!ok) return toast('Le passeur exige que <b>tous les champs</b> soient remplis.');
+        if (invalid.length) {
+          invalid[0].input.focus();
+          return toast(`Le passeur exige <b>${invalid.length} correction${invalid.length > 1 ? 's' : ''}</b>.`);
+        }
         btn.classList.add('is-sending');
         const data = new FormData(form);
         const subject = `[${data.get('type')}] Message de ${data.get('name')}`;
@@ -537,6 +649,7 @@
           toast('<b>Obole prête.</b> Votre messagerie s’ouvre pour traverser le Styx.');
           gsap.delayedCall(3.2, () => {
             btn.classList.remove('is-sent');
+            fields.forEach((fd) => setError(fd, ''));
             form.reset();
             counter.textContent = '0 / 500';
             msg.style.height = '';
@@ -551,6 +664,18 @@
      ========================================================================== */
   function runLoader() {
     const loader = $('.loader');
+    // Sobriété : la cinématique complète une seule fois par session, ensuite les portes s'ouvrent directement
+    let seen = false;
+    try { seen = sessionStorage.getItem('dn-seen') === '1'; sessionStorage.setItem('dn-seen', '1'); } catch {}
+    if (seen || saveData) {
+      $('.loader__center', loader).remove();
+      return new Promise((resolve) => {
+        gsap.timeline({ onComplete: () => loader.remove() })
+          .to('.loader__gate--top', { yPercent: -100, duration: 1.1, ease: 'expo.inOut' }, 0.1)
+          .to('.loader__gate--bottom', { yPercent: 100, duration: 1.1, ease: 'expo.inOut' }, 0.1)
+          .add(resolve, 0.4);
+      });
+    }
     const shapes = $$('.loader__sigil circle, .loader__sigil path', loader);
     shapes.forEach((s) => { const l = s.getTotalLength(); gsap.set(s, { strokeDasharray: l, strokeDashoffset: l }); });
     const count = $('.loader__count', loader);
@@ -614,6 +739,192 @@
   }
 
   /* ==========================================================================
+     Code Konami : ↑ ↑ ↓ ↓ ← → ← → B A — choisissez une bénédiction façon Hades
+     ========================================================================== */
+  (() => {
+    const CODE = ['arrowup', 'arrowup', 'arrowdown', 'arrowdown', 'arrowleft', 'arrowright', 'arrowleft', 'arrowright', 'b', 'a'];
+    const BOONS = {
+      zeus: { name: 'Zeus', hue: 200, power: 'Éclair céleste', desc: 'Chaque clic invoque la foudre.' },
+      ares: { name: 'Arès', hue: 350, power: 'Lame maudite', desc: 'Chaque clic tranche l’air.' },
+      dionysos: { name: 'Dionysos', hue: null, power: 'Ivresse festive', desc: 'Chaque clic fait pleuvoir le raisin.' },
+    };
+    let progress = 0, overlay, flash, fx, fxCtx, effects = [], lastFlash = 0, opener = null;
+
+    const icon = {
+      zeus: '<path d="M56 10 28 54h20l-8 36 32-48H50z"/><circle cx="50" cy="50" r="46"/>',
+      ares: '<path d="M18 82 70 30"/><path d="M62 18h20v20"/><path d="M26 64l10 10"/><circle cx="50" cy="50" r="46"/>',
+      dionysos: '<circle cx="42" cy="40" r="8"/><circle cx="58" cy="40" r="8"/><circle cx="50" cy="54" r="8"/><circle cx="34" cy="54" r="8"/><circle cx="66" cy="54" r="8"/><circle cx="50" cy="68" r="8"/><path d="M50 32c0-8 6-14 14-16"/><circle cx="50" cy="50" r="46"/>',
+    };
+
+    function build() {
+      overlay = document.createElement('div');
+      overlay.className = 'konami';
+      overlay.hidden = true;
+      overlay.setAttribute('role', 'dialog');
+      overlay.setAttribute('aria-modal', 'true');
+      overlay.setAttribute('aria-labelledby', 'konami-title');
+      overlay.innerHTML = `
+        <div class="konami__inner">
+          <p class="konami__code" aria-hidden="true">↑ ↑ ↓ ↓ ← → ← → B A</p>
+          <h2 class="konami__title" id="konami-title">Une porte <em>secrète</em> s’ouvre</h2>
+          <p class="konami__lead">Les dieux de l’Olympe vous offrent une bénédiction. Elle colore tout le site et transforme vos clics.</p>
+          <div class="konami__choices">
+            ${Object.entries(BOONS).map(([k, b]) => `
+              <button type="button" class="konami__boon konami__boon--${k}" data-boon="${k}">
+                <svg viewBox="0 0 100 100" aria-hidden="true">${icon[k]}</svg>
+                <small>${b.name}</small><b>${b.power}</b><span>${b.desc}</span>
+              </button>`).join('')}
+          </div>
+          <button type="button" class="konami__close" data-konami-close>Refuser les dieux (Échap)</button>
+        </div>`;
+      flash = document.createElement('div');
+      flash.className = 'konami__flash';
+      flash.setAttribute('aria-hidden', 'true');
+      fx = document.createElement('canvas');
+      fx.id = 'fx';
+      fx.setAttribute('aria-hidden', 'true');
+      fxCtx = fx.getContext('2d');
+      document.body.append(overlay, flash, fx);
+      const size = () => { fx.width = innerWidth; fx.height = innerHeight; };
+      size();
+      addEventListener('resize', size);
+
+      overlay.addEventListener('click', (e) => {
+        const b = e.target.closest('[data-boon]');
+        if (b) choose(b.dataset.boon);
+        else if (e.target.closest('[data-konami-close]')) close();
+      });
+      overlay.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') close();
+        if (e.key !== 'Tab') return;
+        const focusables = $$('button', overlay);
+        const first = focusables[0], last = focusables[focusables.length - 1];
+        if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+        else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+      });
+    }
+
+    function open() {
+      if (!overlay) build();
+      opener = document.activeElement;
+      lenis?.stop();
+      overlay.hidden = false;
+      burst(2);
+      const cards = $$('.konami__boon', overlay);
+      gsap.timeline()
+        .fromTo(overlay, { opacity: 0 }, { opacity: 1, duration: 0.5 })
+        .fromTo($$('.konami__code, .konami__title, .konami__lead', overlay), { y: 30, opacity: 0 }, { y: 0, opacity: 1, stagger: 0.08, duration: 0.8, ease: 'expo.out' }, 0.1)
+        .fromTo(cards, { y: 120, rotateY: 90, opacity: 0 }, { y: 0, rotateY: 0, opacity: 1, stagger: 0.12, duration: 1.1, ease: 'expo.out', transformPerspective: 900 }, 0.3);
+      cards[0].focus();
+      announce('Code Konami activé : choisissez une bénédiction');
+    }
+
+    function close() {
+      gsap.to(overlay, { opacity: 0, duration: 0.4, onComplete: () => { overlay.hidden = true; } });
+      lenis?.start();
+      opener?.focus?.();
+    }
+
+    function choose(key) {
+      const boon = BOONS[key];
+      root.dataset.boon = key;
+      emberState.hue = boon.hue;
+      emberState.rainbow = key === 'dionysos';
+      embers.respawn();
+      if (!reduce) gsap.fromTo(flash, { opacity: 0.35 }, { opacity: 0, duration: 0.8, ease: 'power2.out' });
+      burst(2.5);
+      close();
+      toast(`<b>Bénédiction de ${boon.name}</b> — ${boon.power}. Cliquez n’importe où. (Refaites le code pour en changer.)`);
+      announce(`Bénédiction de ${boon.name} accordée`);
+    }
+
+    /* --- Effets au clic --- */
+    const jagged = (x1, y1, x2, y2, spread) => {
+      const pts = [[x1, y1]];
+      const steps = 14;
+      for (let i = 1; i < steps; i++) {
+        const t = i / steps;
+        pts.push([x1 + (x2 - x1) * t + (Math.random() - 0.5) * spread, y1 + (y2 - y1) * t + (Math.random() - 0.5) * spread * 0.3]);
+      }
+      pts.push([x2, y2]);
+      return pts;
+    };
+
+    function spawnEffect(x, y) {
+      const key = root.dataset.boon;
+      if (key === 'zeus') {
+        const main = jagged(x + (Math.random() - 0.5) * 300, -10, x, y, 70);
+        const branches = [1, 2].map(() => {
+          const from = main[4 + ((Math.random() * 6) | 0)];
+          return jagged(from[0], from[1], from[0] + (Math.random() - 0.5) * 260, from[1] + 80 + Math.random() * 160, 40);
+        });
+        effects.push({ type: 'bolt', paths: [main, ...branches], life: 1 });
+        // Pas plus d'un flash toutes les 400 ms (WCAG 2.3.1 : moins de 3 flashs par seconde)
+        const now = performance.now();
+        if (!reduce && now - lastFlash > 400) { lastFlash = now; gsap.fromTo(flash, { opacity: 0.18 }, { opacity: 0, duration: 0.35 }); }
+      } else if (key === 'ares') {
+        const a = Math.random() * Math.PI;
+        for (let i = 0; i < 3; i++) effects.push({ type: 'slash', x, y, a: a + (i - 1) * 0.35, len: 160 + i * 40, life: 1, delay: i * 0.06 });
+        for (let i = 0; i < 18; i++) effects.push({ type: 'drop', x, y, vx: (Math.random() - 0.5) * 9, vy: -Math.random() * 7, r: 2 + Math.random() * 3, life: 1, hue: 350 });
+        if (!reduce) gsap.fromTo('#main', { x: -6 }, { x: 0, duration: 0.4, ease: 'elastic.out(1, .3)', clearProps: 'x' });
+      } else if (key === 'dionysos') {
+        for (let i = 0; i < 26; i++) effects.push({ type: 'drop', x, y, vx: (Math.random() - 0.5) * 11, vy: -3 - Math.random() * 8, r: 4 + Math.random() * 5, life: 1, hue: 270 + Math.random() * 60 });
+      }
+      burst(0.6);
+      gsap.ticker.remove(renderFx);
+      gsap.ticker.add(renderFx);
+    }
+
+    function renderFx() {
+      const ctx = fxCtx;
+      ctx.clearRect(0, 0, fx.width, fx.height);
+      ctx.globalCompositeOperation = 'lighter';
+      effects = effects.filter((e) => e.life > 0);
+      for (const e of effects) {
+        if (e.delay > 0) { e.delay -= 1 / 60; continue; }
+        if (e.type === 'bolt') {
+          e.life -= 0.045;
+          for (const [w, c] of [[10, `rgba(74,163,255,${e.life * 0.25})`], [3, `rgba(200,235,255,${e.life})`], [1, `rgba(255,255,255,${e.life})`]]) {
+            ctx.lineWidth = w; ctx.strokeStyle = c; ctx.lineJoin = 'round';
+            e.paths.forEach((p, i) => {
+              ctx.globalAlpha = i ? 0.6 : 1;
+              ctx.beginPath(); p.forEach(([px, py], j) => (j ? ctx.lineTo(px, py) : ctx.moveTo(px, py))); ctx.stroke();
+            });
+          }
+          ctx.globalAlpha = 1;
+        } else if (e.type === 'slash') {
+          e.life -= 0.05;
+          const grow = Math.min(1, (1 - e.life) * 4);
+          const dx = Math.cos(e.a) * e.len * grow / 2, dy = Math.sin(e.a) * e.len * grow / 2;
+          ctx.lineCap = 'round';
+          ctx.lineWidth = 6 * e.life; ctx.strokeStyle = `rgba(255,40,70,${e.life})`;
+          ctx.beginPath(); ctx.moveTo(e.x - dx, e.y - dy); ctx.lineTo(e.x + dx, e.y + dy); ctx.stroke();
+          ctx.lineWidth = 1.5; ctx.strokeStyle = `rgba(255,220,220,${e.life})`; ctx.stroke();
+        } else {
+          e.life -= 0.02; e.vy += 0.35; e.x += e.vx; e.y += e.vy;
+          ctx.fillStyle = `hsla(${e.hue},90%,60%,${e.life})`;
+          ctx.beginPath(); ctx.arc(e.x, e.y, e.r, 0, 6.283); ctx.fill();
+        }
+      }
+      ctx.globalCompositeOperation = 'source-over';
+      if (!effects.length) { ctx.clearRect(0, 0, fx.width, fx.height); gsap.ticker.remove(renderFx); }
+    }
+
+    document.addEventListener('pointerdown', (e) => {
+      if (!root.dataset.boon || (overlay && !overlay.hidden)) return;
+      if (e.target.closest('a, button, input, textarea, label, select, [role="button"]')) return;
+      spawnEffect(e.clientX, e.clientY);
+    });
+
+    addEventListener('keydown', (e) => {
+      if (e.target.closest?.('input, textarea')) return;
+      const key = e.key.toLowerCase();
+      progress = key === CODE[progress] ? progress + 1 : key === CODE[0] ? 1 : 0;
+      if (progress === CODE.length) { progress = 0; open(); }
+    });
+  })();
+
+  /* ==========================================================================
      Démarrage
      ========================================================================== */
   magnetic(nav, (el, ev, fn) => el.addEventListener(ev, fn));
@@ -634,7 +945,7 @@
   barba.init({
     preventRunning: true,
     timeout: 8000,
-    prevent: ({ el }) => el.target === '_blank' || el.protocol === 'mailto:',
+    prevent: ({ el }) => el.target === '_blank' || el.protocol === 'mailto:' || el.getAttribute('href')?.startsWith('#'),
     transitions: [{
       name: 'hades',
       async once({ next }) {
@@ -663,6 +974,9 @@
       async after({ next }) {
         lenis?.start();
         ScrollTrigger.refresh();
+        // Accessibilité : le focus suit la navigation et la nouvelle page est annoncée
+        next.container.focus({ preventScroll: true });
+        announce(`Page ${(ROUTES[next.namespace] || ROUTES.home).title} chargée`);
         await uncover().add(() => playIntro(next.container), 0.55);
       },
     }],
