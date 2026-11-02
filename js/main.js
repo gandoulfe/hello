@@ -208,6 +208,34 @@
     }
   }, true);
 
+  /* ---------- Gyroscope (mobile) ----------
+     Sobriété : un seul écouteur, au plus une mise à jour par image, rien en mode calme ni sans abonné.
+     Le point neutre suit lentement la position de l'utilisateur : on peut tenir le téléphone comme on veut. */
+  const gyro = (() => {
+    const subs = new Set();
+    let base = null, raf = 0, gx = 0, gy = 0, started = false;
+    const clamp = gsap.utils.clamp(-1, 1);
+    const onOrient = (e) => {
+      if (e.gamma == null || e.beta == null) return;
+      if (!base) { base = { g: e.gamma, b: e.beta }; root.classList.add('has-gyro'); }
+      base.g += (e.gamma - base.g) * 0.01;
+      base.b += (e.beta - base.b) * 0.01;
+      gx = clamp((e.gamma - base.g) / 20);
+      gy = clamp((e.beta - base.b) / 20);
+      if (raf || !subs.size || isCalm()) return;
+      raf = requestAnimationFrame(() => { raf = 0; subs.forEach((fn) => fn(gx, gy)); });
+    };
+    const start = () => { if (!started) { started = true; addEventListener('deviceorientation', onOrient); } };
+    if (!fine && !reduce && 'DeviceOrientationEvent' in window) {
+      start(); // Android : les événements arrivent sans autorisation
+      // iOS exige une autorisation donnée lors d'un geste de l'utilisateur (sans effet ailleurs)
+      if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+        addEventListener('touchend', () => { DeviceOrientationEvent.requestPermission().catch(() => {}); }, { once: true });
+      }
+    }
+    return { subscribe: (fn) => { subs.add(fn); return () => subs.delete(fn); } };
+  })();
+
   /* ---------- Annonces lecteur d'écran ---------- */
   const announcer = $('[data-announcer]');
   const announce = (msg) => { announcer.textContent = ''; setTimeout(() => { announcer.textContent = msg; }, 60); };
@@ -335,17 +363,25 @@
   }
 
   function parallax(c) {
-    if (!fine) return;
     const layers = $$('[data-depth]', c).map((el) => ({
+      el,
       d: +el.dataset.depth,
       x: gsap.quickTo(el, 'x', { duration: 1.2, ease: 'power3' }),
       y: gsap.quickTo(el, 'y', { duration: 1.2, ease: 'power3' }),
     }));
     if (!layers.length) return;
-    on(window, 'pointermove', (e) => {
-      const nx = e.clientX / innerWidth - 0.5, ny = e.clientY / innerHeight - 0.5;
-      layers.forEach((l) => { l.x(nx * l.d * 50); l.y(ny * l.d * 50); });
-    });
+    if (fine) {
+      on(window, 'pointermove', (e) => {
+        const nx = e.clientX / innerWidth - 0.5, ny = e.clientY / innerHeight - 0.5;
+        layers.forEach((l) => { l.x(nx * l.d * 50); l.y(ny * l.d * 50); });
+      });
+    } else {
+      // Mobile : la profondeur suit l'inclinaison du téléphone
+      cleanups.push(gyro.subscribe((gx, gy) => layers.forEach((l) => {
+        if (l.el.closest('.is-offscreen')) return; // hors écran : aucun calcul
+        l.x(gx * l.d * 35); l.y(gy * l.d * 35);
+      })));
+    }
   }
 
   function magnetic(root, bind = on) {
@@ -482,6 +518,12 @@
         { root: $('.boons__track', c), threshold: [0, 0.7, 1] });
         $$('.boon', c).forEach((b) => io.observe(b));
         cleanups.push(() => io.disconnect());
+        // Avec gyroscope, la carte centrée s'incline selon le téléphone (variables CSS limitées au carrousel)
+        const track = $('.boons__track', c);
+        cleanups.push(gyro.subscribe((gx, gy) => {
+          track.style.setProperty('--gx', gx.toFixed(3));
+          track.style.setProperty('--gy', gy.toFixed(3));
+        }));
       }
 
       // Bénédictions : scroll horizontal épinglé

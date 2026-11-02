@@ -366,6 +366,12 @@ main:focus { outline: none; }
   .boon { transition: transform 0.7s var(--ease-out); }
   .boon.is-live::before, .boon.is-live::after { opacity: 1; }
   .boon.is-live { animation: boon-live 4.5s ease-in-out infinite; }
+  /* Gyroscope disponible : l'inclinaison du téléphone remplace l'animation automatique */
+  .has-gyro .boon.is-live {
+    animation: none; transition: transform 0.25s ease-out;
+    transform: perspective(900px) rotateY(calc(var(--gx, 0) * 14deg)) rotateX(calc(var(--gy, 0) * -10deg));
+    --mx: calc(50% + var(--gx, 0) * 45%); --my: calc(35% + var(--gy, 0) * 45%); --sx: calc(50% + var(--gx, 0) * 55%);
+  }
 }
 @keyframes boon-live {
   0%, 100% { --mx: 15%; --my: 10%; --sx: 0%; transform: perspective(900px) rotateY(-8deg) rotateX(4deg); }
