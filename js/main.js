@@ -285,7 +285,7 @@
 
     const title = $('[data-hero-title]', c);
     if (title) {
-      const split = SplitText.create(title.querySelectorAll('.word'), { type: 'chars', charsClass: 'char' });
+      const split = SplitText.create(title.querySelectorAll('.word'), { type: 'chars', charsClass: 'char', aria: 'none' });
       tl.fromTo(split.chars,
         { yPercent: 120, rotateX: -95, opacity: 0, filter: 'blur(14px)' },
         { yPercent: 0, rotateX: 0, opacity: 1, filter: 'blur(0px)', duration: 1.8, stagger: { each: 0.05, from: 'center' } }, 0);
@@ -454,8 +454,8 @@
 
       // Manifeste : les mots s'allument au fil du scroll
       const manifesto = $('[data-scrub-words]', c);
-      const words = SplitText.create(manifesto, { type: 'words', wordsClass: 'word' }).words;
-      gsap.fromTo(words, { opacity: 0.1, filter: 'blur(3px)' }, {
+      const words = SplitText.create(manifesto, { type: 'words', wordsClass: 'word', aria: 'none' }).words;
+      gsap.fromTo(words, { opacity: 0.55, filter: 'blur(1.5px)' }, {
         opacity: 1, filter: 'blur(0px)', stagger: 0.1, ease: 'none',
         scrollTrigger: { trigger: manifesto, start: 'top 80%', end: 'bottom 45%', scrub: true },
       });
@@ -685,7 +685,7 @@
       gsap.timeline({ onComplete: () => loader.remove() })
         .to(shapes, { strokeDashoffset: 0, duration: 1.6, stagger: 0.12, ease: 'power2.inOut' }, 0)
         .to(o, { v: 100, duration: 2.1, ease: 'power3.inOut', onUpdate: () => { count.textContent = String(Math.round(o.v)).padStart(3, '0'); } }, 0)
-        .fromTo('.loader__name', { opacity: 0, letterSpacing: '0.3em' }, { opacity: 1, letterSpacing: '0.8em', duration: 1.4, ease: 'expo.out' }, 0.9)
+        .fromTo('.loader__name', { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 1.4, ease: 'expo.out' }, 0.9)
         .to('.loader__sigil', { rotate: 180, scale: 0.85, duration: 1.1, ease: 'expo.inOut' }, 1.9)
         .to('.loader__center', { opacity: 0, scale: 0.9, duration: 0.5, ease: 'power2.in' }, 2.6)
         .to('.loader__seam', { scaleX: 1, duration: 0.7, ease: 'expo.inOut' }, 2.5)
@@ -715,7 +715,7 @@
     titleSplit?.revert();
     tTitle.textContent = info.title;
     tHint.textContent = info.hint;
-    titleSplit = SplitText.create(tTitle, { type: 'chars', charsClass: 'char' });
+    titleSplit = SplitText.create(tTitle, { type: 'chars', charsClass: 'char', aria: 'none' });
     gsap.set(card, { opacity: 1, y: 0 });
     gsap.set(current, { transformOrigin: `50% ${scrollY + innerHeight / 2}px` });
 
@@ -725,7 +725,7 @@
       .fromTo(panels, { xPercent: -110 }, { xPercent: 0, duration: 1.05, ease: 'expo.inOut', stagger: 0.09 }, 0)
       .add(() => burst(1), 0.45)
       .fromTo(tNum, { opacity: 0, y: 20, letterSpacing: '1.4em' }, { opacity: 1, y: 0, letterSpacing: '0.5em', duration: 0.9, ease: 'expo.out' }, 0.8)
-      .fromTo(titleSplit.chars, { yPercent: 120, rotate: 12, opacity: 0 }, { yPercent: 0, rotate: 0, opacity: 1, duration: 0.9, stagger: 0.03, ease: 'expo.out' }, 0.82)
+      .fromTo(titleSplit.chars, { yPercent: 60, rotate: 8, opacity: 0, filter: 'blur(8px)' }, { yPercent: 0, rotate: 0, opacity: 1, filter: 'blur(0px)', duration: 0.9, stagger: 0.03, ease: 'expo.out' }, 0.82)
       .fromTo(tLine, { scaleX: 0 }, { scaleX: 1, duration: 1, ease: 'expo.inOut' }, 0.85)
       .fromTo(tHint, { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.7 }, 1.1)
       .to({}, { duration: 0.15 });
@@ -951,6 +951,7 @@
   if (reduce) {
     // Mouvement réduit : navigation classique, pas de loader ni de transition
     document.fonts.ready.then(() => {
+      root.classList.remove('fonts-pending');
       const c = $('[data-barba="container"]');
       $('.loader').remove();
       document.body.classList.remove('is-loading');
@@ -968,7 +969,10 @@
     transitions: [{
       name: 'hades',
       async once({ next }) {
+        // Perf (LCP/CLS) : polices prêtes, puis le contenu est peint une fois sous les portes du loader avant que l’intro ne le masque
         await document.fonts.ready;
+        root.classList.remove('fonts-pending');
+        await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
         setActive(next.namespace, true);
         initPage(next.container);
         await runLoader();
