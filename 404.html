@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- GitHub Pages sert cette page à n'importe quelle profondeur : les liens relatifs partent de la racine du site -->
+  <base href="/hello/">
+  <title>Page introuvable — David Nazar</title>
+  <meta name="robots" content="noindex">
+  <meta name="theme-color" content="#0a0607">
+  <meta name="color-scheme" content="dark">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='9' fill='%230a0607'/%3E%3Cpath d='M20 7c4 5 8.5 9 8.5 15.5a8.5 8.5 0 0 1-17 0c0-4.5 2.5-7.5 5-9.5 0 3 1 5 3 6.5-1-4.5-.5-8.5.5-12.5Z' fill='none' stroke='%23d8b25a' stroke-width='2'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .lost { min-height: 100svh; display: grid; place-items: center; text-align: center; padding: 40px var(--gutter); }
+    .lost__code { font: 900 clamp(110px, 24vw, 300px)/0.8 var(--f-display); margin: 0; background: linear-gradient(180deg, var(--bone) 25%, var(--gold-2) 65%, var(--ember) 110%); -webkit-background-clip: text; background-clip: text; color: transparent; filter: drop-shadow(0 0 40px rgba(255, 106, 43, 0.3)); }
+    .lost h1 { font: 700 clamp(30px, 4.6vw, 60px)/1.05 var(--f-display); margin: 26px 0 16px; }
+    .lost h1 .serif { color: var(--gold); font-weight: 500; }
+    .lost .lead { margin: 0 auto 40px; }
+    .lost__links { display: flex; flex-wrap: wrap; gap: 14px; justify-content: center; }
+    /* Pas de curseur personnalisé ici : on garde celui du système */
+    body { cursor: auto; } a { cursor: pointer; }
+  </style>
+</head>
+<body>
+  <div class="vignette" aria-hidden="true"></div>
+  <div class="grain" aria-hidden="true"></div>
+  <main class="page lost">
+    <div>
+      <p class="lost__code" aria-hidden="true">404</p>
+      <span class="eyebrow">Salle introuvable</span>
+      <h1>Perdu dans <span class="serif">le Tartare</span></h1>
+      <p class="lead">Cette porte ne mène nulle part. Même Zagreus revient parfois sur ses pas.</p>
+      <div class="lost__links">
+        <a class="btn btn--blood" href="./"><span class="btn__inner">Remonter à l’accueil</span></a>
+        <a class="btn" href="projets.html"><span class="btn__inner">Voir les projets</span></a>
+      </div>
+    </div>
+  </main>
+</body>
+</html>

@@ -294,12 +294,22 @@
       parallax(c);
       magnetic(c);
       tilt(c);
+      revealEmails(c);
       scramble(c);
       counters(c);
       zoneWaves(c);
       pauseOffscreen(c);
       PAGES[ns]?.(c);
     }, c);
+  }
+
+  // Anti-spam : l'adresse n'apparaît en clair qu'une fois le script exécuté (data-email="nom|domaine")
+  function revealEmails(c) {
+    $$('[data-email]', c).forEach((a) => {
+      const email = a.dataset.email.replace('|', '@');
+      a.href = 'mailto:' + email;
+      a.textContent = email;
+    });
   }
 
   // Bordures de région : vague périodique (période 720 sur 2880) pour une dérive en boucle sans raccord visible
@@ -765,7 +775,7 @@
         gsap.delayedCall(1.2, () => {
           btn.classList.replace('is-sending', 'is-sent');
           burst(1.2);
-          location.href = `mailto:${form.dataset.mailto}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+          location.href = `mailto:${form.dataset.mailto.replace('|', '@')}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
           toast('<b>Obole prête.</b> Votre messagerie s’ouvre pour traverser le Styx.');
           gsap.delayedCall(3.2, () => {
             btn.classList.remove('is-sent');
