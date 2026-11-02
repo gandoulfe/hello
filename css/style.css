@@ -403,7 +403,8 @@ main:focus { outline: none; }
 
 .toolbar { display: flex; justify-content: space-between; align-items: center; gap: 20px; flex-wrap: wrap; padding: 22px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); position: sticky; top: 0; z-index: 5; background: rgba(10, 6, 7, 0.75); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
 .segmented { position: relative; display: inline-flex; padding: 4px; border-radius: 999px; border: 1px solid var(--line); background: var(--ink-2); }
-.segmented button { position: relative; z-index: 1; padding: 9px 16px; border-radius: 999px; font: 500 12px/1 var(--f-ui); letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); transition: color 0.35s; }
+.segmented button { position: relative; z-index: 1; padding: 9px 16px; border-radius: 999px; font: 500 12px/1 var(--f-ui); letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); white-space: nowrap; flex-shrink: 0; transition: color 0.35s; }
+@media (max-width: 760px) { /* Mobile : les filtres défilent horizontalement au lieu de se replier */ .toolbar { flex-direction: column; align-items: stretch; gap: 12px; padding: 16px 0; } .segmented[data-filter] { display: flex; max-width: 100%; overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: none; scroll-padding: 0 24px; } .segmented[data-filter]::-webkit-scrollbar { display: none; } .segmented[data-filter]::after { content: ""; flex: 0 0 4px; } .segmented[data-view] { align-self: flex-start; } }
 .segmented button.is-active { color: var(--ink); }
 .segmented__pill { position: absolute; top: 4px; bottom: 4px; left: 0; border-radius: 999px; background: var(--gold); box-shadow: 0 4px 18px rgba(216, 178, 90, 0.35); }
 

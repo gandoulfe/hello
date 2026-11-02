@@ -436,6 +436,10 @@
       if (b === active) return;
       active = b;
       btns.forEach((x) => { x.classList.toggle('is-active', x === b); x.setAttribute('aria-pressed', String(x === b)); });
+      // Mobile : le filtre choisi est recentré dans la ligne défilante
+      if (group.scrollWidth > group.clientWidth) {
+        group.scrollTo({ left: b.offsetLeft - (group.clientWidth - b.offsetWidth) / 2, behavior: reduce ? 'auto' : 'smooth' });
+      }
       move(b);
       onChange(b.dataset.value);
     }));
