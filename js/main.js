@@ -521,26 +521,32 @@
       const works = $('[data-works]', c);
       const items = $$('.work', works);
 
+      // Un clic pendant une animation termine la précédente au lieu de s'empiler
+      let flip = null;
+      const finishFlip = () => { flip?.progress(1).kill(); gsap.killTweensOf(items); gsap.set(items, { clearProps: 'opacity,transform' }); };
+
       segmented($('[data-filter]', c), (value) => {
+        finishFlip();
         const state = Flip.getState(items, { props: 'opacity' });
         items.forEach((it) => { it.style.display = value === 'all' || it.dataset.cat === value ? '' : 'none'; });
         const shown = items.filter((it) => it.style.display !== 'none').length;
         announce(`${shown} référence${shown > 1 ? 's' : ''} affichée${shown > 1 ? 's' : ''}`);
-        Flip.from(state, {
-          duration: 0.9, ease: 'expo.inOut', absolute: true, stagger: 0.03,
-          onEnter: (els) => gsap.fromTo(els, { opacity: 0, y: 50 }, { opacity: 1, y: 0, duration: 0.8, delay: 0.25, ease: 'expo.out' }),
-          onLeave: (els) => gsap.to(els, { opacity: 0, y: -30, duration: 0.4, ease: 'power2.in' }),
+        flip = Flip.from(state, {
+          duration: 0.55, ease: 'power3.out', absolute: true,
+          onEnter: (els) => gsap.fromTo(els, { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 0.45, stagger: 0.03, ease: 'power3.out' }),
+          onLeave: (els) => gsap.to(els, { opacity: 0, duration: 0.2, ease: 'power1.in' }),
           onComplete: () => ScrollTrigger.refresh(),
         });
       });
 
       segmented($('[data-view]', c), (value) => {
+        finishFlip();
         hidePreview();
         const state = Flip.getState(items);
         works.classList.toggle('is-grid', value === 'grid');
         announce(value === 'grid' ? 'Affichage en grille' : 'Affichage en liste');
-        Flip.from(state, { duration: 1.1, ease: 'expo.inOut', absolute: true, stagger: 0.035, onComplete: () => ScrollTrigger.refresh() });
-        if (value === 'grid') gsap.from($$('.work__art', works), { opacity: 0, scale: 0.8, duration: 1, delay: 0.45, stagger: 0.05, ease: 'expo.out' });
+        flip = Flip.from(state, { duration: 0.7, ease: 'power3.inOut', absolute: true, stagger: 0.02, onComplete: () => ScrollTrigger.refresh() });
+        if (value === 'grid') gsap.fromTo($$('.work__art', works), { opacity: 0, scale: 0.9 }, { opacity: 1, scale: 1, duration: 0.6, delay: 0.15, stagger: 0.03, ease: 'power3.out' });
       });
 
       // Aperçu flottant qui suit le curseur (mode liste)
