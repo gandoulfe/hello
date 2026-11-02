@@ -14,7 +14,7 @@
 
   const ROUTES = {
     home: { num: 'I', title: 'Accueil', hint: '— retour à la surface —' },
-    projets: { num: 'II', title: 'Les Chambres', hint: '— huit portes vous attendent —' },
+    projets: { num: 'II', title: 'Les Chambres', hint: '— onze portes vous attendent —' },
     apropos: { num: 'III', title: 'Chroniques', hint: '— le récit commence —' },
     contact: { num: 'IV', title: 'Le Styx', hint: '— le passeur vous attend —' },
   };
@@ -459,9 +459,11 @@
         lastX = e.clientX;
       });
       on(works, 'pointerleave', hidePreview);
+      const desc = $('.preview__desc', preview);
       items.forEach((it) => on(it, 'pointerenter', () => {
         if (works.classList.contains('is-grid')) return;
         art.style.setProperty('--h', it.dataset.hue);
+        desc.textContent = it.dataset.desc;
         art.dataset.num = $('.work__num', it).textContent;
         gsap.to(preview, { scale: 1, opacity: 1, duration: 0.7, ease: 'expo.out', overwrite: 'auto' });
         gsap.fromTo(art, { scale: 1.35 }, { scale: 1, duration: 1.1, ease: 'expo.out' });
@@ -525,10 +527,14 @@
         });
         if (!ok) return toast('Le passeur exige que <b>tous les champs</b> soient remplis.');
         btn.classList.add('is-sending');
-        gsap.delayedCall(1.5, () => {
+        const data = new FormData(form);
+        const subject = `[${data.get('type')}] Message de ${data.get('name')}`;
+        const body = `${data.get('message')}\n\n— ${data.get('name')} (${data.get('email')})`;
+        gsap.delayedCall(1.2, () => {
           btn.classList.replace('is-sending', 'is-sent');
           burst(1.2);
-          toast('<b>Obole reçue.</b> Votre message traverse le Styx (pour de faux).');
+          location.href = `mailto:${form.dataset.mailto}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+          toast('<b>Obole prête.</b> Votre messagerie s’ouvre pour traverser le Styx.');
           gsap.delayedCall(3.2, () => {
             btn.classList.remove('is-sent');
             form.reset();

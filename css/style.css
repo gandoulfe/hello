@@ -347,7 +347,7 @@ img, svg { display: block; max-width: 100%; }
 .works.is-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px; padding-top: 40px; }
 .works.is-grid .work { border: 1px solid var(--line); border-radius: 20px; background: var(--ink-2); }
 .works.is-grid .work__fill { display: none; }
-.works.is-grid .work__inner { grid-template-columns: 1fr auto; grid-template-areas: "art art" "num year" "title title" "type type"; padding: 16px 16px 26px; gap: 14px; }
+.works.is-grid .work__inner { grid-template-columns: 1fr auto; grid-template-areas: "art art" "num year" "title title" "type type" "desc desc"; padding: 16px 16px 26px; gap: 14px; }
 .works.is-grid .work__art { display: block; grid-area: art; aspect-ratio: 4 / 3; border-radius: 12px; }
 .works.is-grid .work__num { grid-area: num; }
 .works.is-grid .work__year { grid-area: year; }
@@ -374,6 +374,9 @@ img, svg { display: block; max-width: 100%; }
 
 .preview { position: fixed; top: 0; left: 0; z-index: 60; width: 340px; aspect-ratio: 4 / 3; pointer-events: none; border-radius: 16px; overflow: hidden; transform: scale(0); opacity: 0; box-shadow: 0 40px 80px -20px rgba(0, 0, 0, 0.9); }
 .preview .art { position: absolute; inset: 0; }
+.preview__desc { position: absolute; left: 0; right: 0; bottom: 0; margin: 0; padding: 40px 18px 16px; font-size: 13px; line-height: 1.45; color: var(--bone); background: linear-gradient(transparent, rgba(10, 6, 7, 0.92)); }
+.work__desc { display: none; margin: 0; font-size: 14px; line-height: 1.5; color: var(--muted); }
+.works.is-grid .work__desc { display: block; grid-area: desc; }
 @media (hover: none) { .preview { display: none; } }
 
 /* ==========================================================================
