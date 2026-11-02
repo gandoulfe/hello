@@ -226,14 +226,27 @@
       raf = requestAnimationFrame(() => { raf = 0; subs.forEach((fn) => fn(gx, gy)); });
     };
     const start = () => { if (!started) { started = true; addEventListener('deviceorientation', onOrient); } };
-    if (!fine && !reduce && 'DeviceOrientationEvent' in window) {
-      start(); // Android : les événements arrivent sans autorisation
-      // iOS exige une autorisation donnée lors d'un geste de l'utilisateur (sans effet ailleurs)
-      if (typeof DeviceOrientationEvent.requestPermission === 'function') {
-        addEventListener('touchend', () => { DeviceOrientationEvent.requestPermission().catch(() => {}); }, { once: true });
-      }
+    const supported = !fine && !reduce && 'DeviceOrientationEvent' in window;
+    // iPhone : Safari impose une autorisation, demandée seulement via le bouton « Activer la 3D »
+    const isIOS = /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    const needsPermission = supported && isIOS && typeof DeviceOrientationEvent.requestPermission === 'function';
+    let granted = !needsPermission;
+    if (supported) start(); // Android : les événements arrivent sans autorisation
+    // Déjà accordée sur ce site : Safari la confirme sans nouvelle question au premier toucher
+    if (needsPermission && store.get('dn-gyro') === '1') {
+      addEventListener('touchend', () => { DeviceOrientationEvent.requestPermission().catch(() => {}); }, { once: true });
+      granted = true;
     }
-    return { subscribe: (fn) => { subs.add(fn); return () => subs.delete(fn); } };
+    const request = () => DeviceOrientationEvent.requestPermission().then((s) => {
+      granted = s === 'granted';
+      if (granted) store.set('dn-gyro', '1');
+      return granted;
+    }).catch(() => false);
+    return {
+      subscribe: (fn) => { subs.add(fn); return () => subs.delete(fn); },
+      canAsk: () => needsPermission && !granted,
+      request,
+    };
   })();
 
   /* ---------- Annonces lecteur d'écran ---------- */
@@ -518,6 +531,21 @@
         { root: $('.boons__track', c), threshold: [0, 0.7, 1] });
         $$('.boon', c).forEach((b) => io.observe(b));
         cleanups.push(() => io.disconnect());
+        // iPhone : la perspective au gyroscope ne démarre que si l'utilisateur la demande
+        if (gyro.canAsk()) {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'gyro-btn';
+          btn.innerHTML = '<span aria-hidden="true">✦</span> Activer la 3D';
+          btn.setAttribute('aria-label', 'Activer la perspective 3D : les cartes suivent l’inclinaison du téléphone');
+          $('.boons__head', c).append(btn);
+          on(btn, 'click', async () => {
+            const ok = await gyro.request();
+            toast(ok ? '<b>Perspective 3D activée</b> — inclinez votre téléphone.' : 'Sans autorisation, les cartes gardent leur <b>animation automatique</b>.');
+            gsap.to(btn, { opacity: 0, scale: 0.8, duration: 0.4, onComplete: () => btn.remove() });
+          });
+        }
+
         // Avec gyroscope, la carte centrée s'incline selon le téléphone (variables CSS limitées au carrousel)
         const track = $('.boons__track', c);
         cleanups.push(gyro.subscribe((gx, gy) => {
