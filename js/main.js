@@ -296,14 +296,37 @@
       tilt(c);
       scramble(c);
       counters(c);
+      zoneWaves(c);
       pauseOffscreen(c);
       PAGES[ns]?.(c);
     }, c);
   }
 
-  // Sobriété : les animations CSS en boucle (sceaux, médaillon) s'arrêtent hors écran
+  // Bordures de région : vague périodique (période 720 sur 2880) pour une dérive en boucle sans raccord visible
+  const wavePath = (y, amp, phase) => {
+    let d = `M${phase - 720} ${y} Q${phase - 540} ${y - 2 * amp} ${phase - 360} ${y}`;
+    for (let x = phase; x <= 2880 + 720; x += 360) d += ` T${x} ${y}`;
+    return d;
+  };
+  const WAVE_SVG = `<svg viewBox="0 0 2880 41" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+    <path class="wave-fill" d="${wavePath(22, 8, 0)} V41 H-720 Z"/>
+    <path class="wave-line wave-line--echo" vector-effect="non-scaling-stroke" d="${wavePath(28, 6, 180)}"/>
+    <path class="wave-glow" vector-effect="non-scaling-stroke" d="${wavePath(22, 8, 0)}"/>
+    <path class="wave-line" vector-effect="non-scaling-stroke" d="${wavePath(22, 8, 0)}"/>
+  </svg>`;
+  function zoneWaves(c) {
+    $$('.zone', c).forEach((z) => {
+      if ($(':scope > .zone__wave', z)) return;
+      const w = document.createElement('div');
+      w.className = 'zone__wave';
+      w.innerHTML = WAVE_SVG;
+      z.prepend(w);
+    });
+  }
+
+  // Sobriété : les animations CSS en boucle (sceaux, médaillon, vagues) s'arrêtent hors écran
   function pauseOffscreen(c) {
-    const els = $$('.hero, .medallion', c);
+    const els = $$('.hero, .medallion, .zone', c);
     if (!els.length) return;
     const io = new IntersectionObserver((entries) =>
       entries.forEach((e) => e.target.classList.toggle('is-offscreen', !e.isIntersecting)));
@@ -603,6 +626,14 @@
       // Un clic pendant une animation termine la précédente au lieu de s'empiler
       let flip = null;
       const finishFlip = () => { flip?.progress(1).kill(); gsap.killTweensOf(items); gsap.set(items, { clearProps: 'opacity,transform' }); };
+
+      // Compteur par filtre, et fond vitré de la barre seulement quand elle reste collée en haut
+      $$('[data-filter] button', c).forEach((b) => {
+        const n = b.dataset.value === 'all' ? items.length : items.filter((it) => it.dataset.cat === b.dataset.value).length;
+        b.insertAdjacentHTML('beforeend', ` <span class="seg-count">${n}</span>`);
+      });
+      const toolbar = $('.toolbar', c);
+      ScrollTrigger.create({ trigger: toolbar, start: 'top top', endTrigger: works, end: 'bottom top', toggleClass: { targets: toolbar, className: 'is-stuck' } });
 
       segmented($('[data-filter]', c), (value) => {
         finishFlip();
