@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Contact — David Nazar</title>
+  <meta name="description" content="Portfolio (factice) de David Nazar, développeur front-end. Interfaces animées, transitions et micro-interactions.">
+  <meta name="theme-color" content="#0a0607">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%230a0607'/%3E%3Cpath d='M50 14 83 71H17Z M50 86 17 29h66Z' fill='none' stroke='%23d8b25a' stroke-width='4'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400..900&family=Cormorant+Garamond:ital,wght@1,400;1,500&family=Inter+Tight:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="is-loading" data-barba="wrapper">
+  <canvas id="embers" aria-hidden="true"></canvas>
+  <div class="vignette" aria-hidden="true"></div>
+  <div class="grain" aria-hidden="true"></div>
+
+  <div class="cursor" aria-hidden="true">
+    <div class="cursor__ring"><span class="cursor__label"></span></div>
+    <div class="cursor__dot"></div>
+  </div>
+
+  <div class="loader" aria-hidden="true">
+    <div class="loader__gate loader__gate--top"></div>
+    <div class="loader__gate loader__gate--bottom"></div>
+    <div class="loader__seam"></div>
+    <div class="loader__center">
+      <svg class="loader__sigil" viewBox="0 0 200 200">
+        <circle cx="100" cy="100" r="92"/>
+        <circle cx="100" cy="100" r="76"/>
+        <path d="M100 24 166 138H34Z"/>
+        <path d="M100 176 34 62h132Z"/>
+        <circle cx="100" cy="100" r="24"/>
+      </svg>
+      <div class="loader__count">000</div>
+      <div class="loader__name">DAVID NAZAR</div>
+    </div>
+  </div>
+
+  <div class="transition" aria-hidden="true">
+    <div class="transition__panel transition__panel--gold"></div>
+    <div class="transition__panel transition__panel--blood"></div>
+    <div class="transition__panel transition__panel--ink"></div>
+    <div class="transition__card">
+      <span class="transition__num">I</span>
+      <div class="transition__title-mask"><span class="transition__title">Accueil</span></div>
+      <span class="transition__line"></span>
+      <span class="transition__hint">— la porte s'ouvre —</span>
+    </div>
+  </div>
+
+  <header class="nav">
+    <a href="index.html" class="nav__logo" data-magnetic aria-label="Accueil">
+      <svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="18"/><path d="M20 5 33 27H7Z"/><path d="M20 35 7 13h26Z"/></svg>
+      <span>NAZAR</span>
+    </a>
+    <nav class="nav__links" aria-label="Navigation principale">
+      <span class="nav__pill" aria-hidden="true"></span>
+      <a class="nav__link" data-ns="home" href="index.html"><small>I</small>Accueil</a>
+      <a class="nav__link" data-ns="projets" href="projets.html"><small>II</small>Projets</a>
+      <a class="nav__link" data-ns="apropos" href="apropos.html"><small>III</small>À propos</a>
+      <a class="nav__link" data-ns="contact" href="contact.html"><small>IV</small>Contact</a>
+    </nav>
+    <span class="nav__progress" aria-hidden="true"></span>
+  </header>
+
+  <main class="page" data-barba="container" data-barba-namespace="contact">
+
+    <header class="page-head" style="padding-bottom: 40px">
+      <div class="wrap">
+        <span class="eyebrow" data-hero-fade>IV — Contact</span>
+        <h1 class="contact-title" data-weight-title aria-label="Écris-moi">Écris-moi</h1>
+        <p class="lead" data-hero-fade>Une quête, une mission, ou simplement l'envie de parler transitions ? Le passeur attend votre obole.</p>
+      </div>
+    </header>
+
+    <section class="wrap contact-grid">
+      <aside class="contact-info" data-hero-fade>
+        <dl>
+          <div><dt>Courriel</dt><dd><a href="mailto:bonjour@davidnazar.dev" data-scramble>bonjour@davidnazar.dev</a></dd></div>
+          <div><dt>Repaire</dt><dd>Paris, rive gauche du Styx</dd></div>
+          <div><dt>Disponibilité</dt><dd>Nouvelles quêtes dès janvier 2027</dd></div>
+          <div>
+            <dt>Ailleurs</dt>
+            <dd class="socials">
+              <a class="social" href="https://github.com/" target="_blank" rel="noopener" data-scramble data-magnetic>GitHub</a>
+              <a class="social" href="https://www.linkedin.com/" target="_blank" rel="noopener" data-scramble data-magnetic>LinkedIn</a>
+              <a class="social" href="https://codepen.io/" target="_blank" rel="noopener" data-scramble data-magnetic>CodePen</a>
+              <a class="social" href="https://dribbble.com/" target="_blank" rel="noopener" data-scramble data-magnetic>Dribbble</a>
+            </dd>
+          </div>
+        </dl>
+      </aside>
+
+      <form class="form" data-form novalidate data-hero-fade>
+        <div class="form__row">
+          <div class="field">
+            <input id="f-name" name="name" type="text" placeholder=" " required autocomplete="name">
+            <label for="f-name">Votre nom</label>
+            <span class="field__bar"></span>
+          </div>
+          <div class="field">
+            <input id="f-mail" name="email" type="email" placeholder=" " required autocomplete="email">
+            <label for="f-mail">Votre courriel</label>
+            <span class="field__bar"></span>
+          </div>
+        </div>
+        <fieldset style="border:0;margin:0;padding:0">
+          <legend class="choices-label">Type de quête</legend>
+          <div class="choices">
+            <label class="choice"><input type="radio" name="type" value="site" checked><span>Site vitrine</span></label>
+            <label class="choice"><input type="radio" name="type" value="app"><span>Application</span></label>
+            <label class="choice"><input type="radio" name="type" value="motion"><span>Motion / WebGL</span></label>
+            <label class="choice"><input type="radio" name="type" value="audit"><span>Audit perf</span></label>
+          </div>
+        </fieldset>
+        <div class="field">
+          <textarea id="f-msg" name="message" placeholder=" " maxlength="500" required></textarea>
+          <label for="f-msg">Votre message</label>
+          <span class="field__bar"></span>
+          <span class="field__count" data-count-chars>0 / 500</span>
+        </div>
+        <button type="submit" class="btn btn--blood submit" data-magnetic>
+          <span class="btn__inner">Payer l'obole
+            <svg class="btn__arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 12h16M14 6l6 6-6 6"/></svg>
+          </span>
+          <span class="submit__state submit__spin"><span></span></span>
+          <span class="submit__state submit__check"><svg viewBox="0 0 26 26"><path d="M5 13.5 10.5 19 21 7"/></svg></span>
+        </button>
+      </form>
+    </section>
+
+    <footer class="footer">
+      <div class="wrap">
+        <span>© 2026 David Nazar — contenu factice</span>
+        <div class="footer__links"><a href="index.html">Accueil</a><a href="projets.html">Projets</a><a href="apropos.html">À propos</a></div>
+      </div>
+    </footer>
+  </main>
+
+  <div class="toast" role="status" aria-live="polite"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/SplitText.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/Flip.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lenis@1.3.4/dist/lenis.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@barba/core@2.10.3/dist/barba.umd.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>

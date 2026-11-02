@@ -1,0 +1,289 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>À propos — David Nazar</title>
+  <meta name="description" content="Portfolio (factice) de David Nazar, développeur front-end. Interfaces animées, transitions et micro-interactions.">
+  <meta name="theme-color" content="#0a0607">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%230a0607'/%3E%3Cpath d='M50 14 83 71H17Z M50 86 17 29h66Z' fill='none' stroke='%23d8b25a' stroke-width='4'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400..900&family=Cormorant+Garamond:ital,wght@1,400;1,500&family=Inter+Tight:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="is-loading" data-barba="wrapper">
+  <canvas id="embers" aria-hidden="true"></canvas>
+  <div class="vignette" aria-hidden="true"></div>
+  <div class="grain" aria-hidden="true"></div>
+
+  <div class="cursor" aria-hidden="true">
+    <div class="cursor__ring"><span class="cursor__label"></span></div>
+    <div class="cursor__dot"></div>
+  </div>
+
+  <div class="loader" aria-hidden="true">
+    <div class="loader__gate loader__gate--top"></div>
+    <div class="loader__gate loader__gate--bottom"></div>
+    <div class="loader__seam"></div>
+    <div class="loader__center">
+      <svg class="loader__sigil" viewBox="0 0 200 200">
+        <circle cx="100" cy="100" r="92"/>
+        <circle cx="100" cy="100" r="76"/>
+        <path d="M100 24 166 138H34Z"/>
+        <path d="M100 176 34 62h132Z"/>
+        <circle cx="100" cy="100" r="24"/>
+      </svg>
+      <div class="loader__count">000</div>
+      <div class="loader__name">DAVID NAZAR</div>
+    </div>
+  </div>
+
+  <div class="transition" aria-hidden="true">
+    <div class="transition__panel transition__panel--gold"></div>
+    <div class="transition__panel transition__panel--blood"></div>
+    <div class="transition__panel transition__panel--ink"></div>
+    <div class="transition__card">
+      <span class="transition__num">I</span>
+      <div class="transition__title-mask"><span class="transition__title">Accueil</span></div>
+      <span class="transition__line"></span>
+      <span class="transition__hint">— la porte s'ouvre —</span>
+    </div>
+  </div>
+
+  <header class="nav">
+    <a href="index.html" class="nav__logo" data-magnetic aria-label="Accueil">
+      <svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="18"/><path d="M20 5 33 27H7Z"/><path d="M20 35 7 13h26Z"/></svg>
+      <span>NAZAR</span>
+    </a>
+    <nav class="nav__links" aria-label="Navigation principale">
+      <span class="nav__pill" aria-hidden="true"></span>
+      <a class="nav__link" data-ns="home" href="index.html"><small>I</small>Accueil</a>
+      <a class="nav__link" data-ns="projets" href="projets.html"><small>II</small>Projets</a>
+      <a class="nav__link" data-ns="apropos" href="apropos.html"><small>III</small>À propos</a>
+      <a class="nav__link" data-ns="contact" href="contact.html"><small>IV</small>Contact</a>
+    </nav>
+    <span class="nav__progress" aria-hidden="true"></span>
+  </header>
+
+  <main class="page" data-barba="container" data-barba-namespace="apropos">
+
+    <header class="page-head">
+      <div class="wrap about-hero">
+        <div>
+          <span class="eyebrow" data-hero-fade>III — À propos</span>
+          <h1 class="page-head__title" data-hero-lines>Les <span class="serif">chroniques</span></h1>
+          <p class="lead" data-hero-fade>Développeur front-end depuis douze ans (factices), je construis des interfaces où la performance et la mise en scène ne se font jamais la guerre.</p>
+        </div>
+        <div class="medallion" data-hero-medallion data-depth="0.5">
+          <svg class="medallion__ring" viewBox="0 0 400 400" aria-hidden="true">
+            <defs><path id="medRing" d="M200,200 m-182,0 a182,182 0 1,1 364,0 a182,182 0 1,1 -364,0"/></defs>
+            <circle cx="200" cy="200" r="198" fill="none" stroke="rgba(216,178,90,.35)"/>
+            <text><textPath href="#medRing">DÉVELOPPEUR FRONT-END ✦ ARTISAN DU PIXEL ✦ CHASSEUR DE BUGS ✦ CONTEUR D'INTERFACES ✦ </textPath></text>
+          </svg>
+          <div class="medallion__core"><span class="medallion__initials">DN</span></div>
+        </div>
+      </div>
+    </header>
+
+    <section class="section" style="padding-top: 40px">
+      <div class="wrap bio">
+        <div>
+          <span class="eyebrow" data-reveal>L'origine</span>
+          <h2 class="h2" data-split-lines style="margin-top:24px">Né dans <span class="serif gold">le code</span>, forgé dans le motion.</h2>
+        </div>
+        <div data-reveal>
+          <p><strong>Tout a commencé avec un jeu vidéo</strong> : une transition de salle si parfaite qu'elle m'a fait comprendre qu'une interface pouvait raconter une histoire.</p>
+          <p>Depuis, je traque les millisecondes perdues, les easings paresseux et les états oubliés. Je travaille main dans la main avec les designers pour que <strong>chaque intention survive au passage en production</strong>.</p>
+          <p>Quand je ne code pas, je relance une partie de Hades « juste pour une run », j'explore le château des Belmont, ou je décortique les sites primés d'Awwwards image par image.</p>
+        </div>
+      </div>
+    </section>
+
+    <div class="divider"></div>
+
+    <section class="section">
+      <div class="wrap">
+        <span class="eyebrow" data-reveal>Parcours</span>
+        <h2 class="h2" data-split-lines style="margin-top:24px">La <span class="serif gold">descente</span></h2>
+
+        <div class="chronicles" data-chronicles>
+          <svg class="chronicles__svg" preserveAspectRatio="none" viewBox="0 0 60 1000" aria-hidden="true">
+            <defs>
+              <linearGradient id="chronGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stop-color="#f3d98b"/><stop offset=".5" stop-color="#ff6a2b"/><stop offset="1" stop-color="#a3122a"/>
+              </linearGradient>
+            </defs>
+            <path class="track" pathLength="1" d="M30 0C50 100 10 200 30 300S50 500 30 600 10 800 30 900 30 1000 30 1000"/>
+            <path class="draw" pathLength="1" d="M30 0C50 100 10 200 30 300S50 500 30 600 10 800 30 900 30 1000 30 1000"/>
+          </svg>
+
+          <div class="chronicle">
+            <span class="chronicle__node"></span>
+            <div class="chronicle__date">2026</div>
+            <div class="chronicle__body" data-reveal>
+              <span class="chronicle__role">Lead front-end</span>
+              <h3>Studio Érèbe</h3>
+              <p>Direction technique front d'un studio créatif : WebGL, design system, et une obsession pour les transitions.</p>
+            </div>
+          </div>
+          <div class="chronicle">
+            <span class="chronicle__node"></span>
+            <div class="chronicle__date">2023</div>
+            <div class="chronicle__body" data-reveal>
+              <span class="chronicle__role">Développeur créatif</span>
+              <h3>Agence Nyx</h3>
+              <p>Sites événementiels primés, microsites de lancement et expériences scroll-driven pour des marques culturelles.</p>
+            </div>
+          </div>
+          <div class="chronicle">
+            <span class="chronicle__node"></span>
+            <div class="chronicle__date">2020</div>
+            <div class="chronicle__body" data-reveal>
+              <span class="chronicle__role">Développeur front-end</span>
+              <h3>Olympe Bank</h3>
+              <p>Refonte d'une application bancaire : accessibilité AA, performance et migration vers TypeScript.</p>
+            </div>
+          </div>
+          <div class="chronicle">
+            <span class="chronicle__node"></span>
+            <div class="chronicle__date">2017</div>
+            <div class="chronicle__body" data-reveal>
+              <span class="chronicle__role">Intégrateur freelance</span>
+              <h3>Les années Asphodèle</h3>
+              <p>Cinquante sites intégrés au pixel près. L'école de la rigueur — et des navigateurs capricieux.</p>
+            </div>
+          </div>
+          <div class="chronicle">
+            <span class="chronicle__node"></span>
+            <div class="chronicle__date">2014</div>
+            <div class="chronicle__body" data-reveal>
+              <span class="chronicle__role">Épée en bois</span>
+              <h3>Premier « Hello World »</h3>
+              <p>Une page HTML, un fond noir, un texte qui clignote. Le début de la descente.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="divider"></div>
+
+    <section class="section">
+      <div class="wrap">
+        <span class="eyebrow" data-reveal>Armes infernales</span>
+        <h2 class="h2" data-split-lines style="margin-top:24px">L'<span class="serif gold">arsenal</span></h2>
+        <div class="arsenal">
+          <div class="weapon" data-reveal tabindex="0">
+            <div class="weapon__card">
+              <div class="weapon__face">
+                <svg class="weapon__glyph" viewBox="0 0 70 70"><path d="M10 60 54 16"/><path d="M48 10h12v12"/><path d="M16 46l8 8"/><path d="M8 62l6-6"/></svg>
+                <div><div class="weapon__aspect">Aspect de l'éditeur</div><h3 class="weapon__name">Stygius</h3><div class="weapon__tool">VS Code</div></div>
+              </div>
+              <div class="weapon__face weapon__face--back">
+                <div class="weapon__aspect">Maîtrise</div>
+                <p>L'épée des ténèbres, affûtée par 200 raccourcis clavier et un thème sombre sur mesure.</p>
+                <div class="weapon__meter"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></div>
+              </div>
+            </div>
+          </div>
+          <div class="weapon" data-reveal tabindex="0">
+            <div class="weapon__card">
+              <div class="weapon__face">
+                <svg class="weapon__glyph" viewBox="0 0 70 70"><path d="M35 4v62"/><path d="M27 16 35 4l8 12"/><circle cx="35" cy="40" r="6"/></svg>
+                <div><div class="weapon__aspect">Aspect du composant</div><h3 class="weapon__name">Varatha</h3><div class="weapon__tool">React · Vue</div></div>
+              </div>
+              <div class="weapon__face weapon__face--back">
+                <div class="weapon__aspect">Maîtrise</div>
+                <p>La lance éternelle. Frappe à distance avec des composants réutilisables et un state bien rangé.</p>
+                <div class="weapon__meter"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></div>
+              </div>
+            </div>
+          </div>
+          <div class="weapon" data-reveal tabindex="0">
+            <div class="weapon__card">
+              <div class="weapon__face">
+                <svg class="weapon__glyph" viewBox="0 0 70 70"><path d="M35 6 60 16v20c0 14-11 24-25 28C21 60 10 50 10 36V16Z"/><circle cx="35" cy="34" r="8"/></svg>
+                <div><div class="weapon__aspect">Aspect du testeur</div><h3 class="weapon__name">Égide</h3><div class="weapon__tool">Playwright · Vitest</div></div>
+              </div>
+              <div class="weapon__face weapon__face--back">
+                <div class="weapon__aspect">Maîtrise</div>
+                <p>Le bouclier qui renvoie les régressions à l'expéditeur. Tests e2e, visuels et unitaires.</p>
+                <div class="weapon__meter"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i></div>
+              </div>
+            </div>
+          </div>
+          <div class="weapon" data-reveal tabindex="0">
+            <div class="weapon__card">
+              <div class="weapon__face">
+                <svg class="weapon__glyph" viewBox="0 0 70 70"><path d="M20 6c22 10 22 48 0 58"/><path d="M20 6v58"/><path d="M8 35h54"/><path d="M54 29l8 6-8 6"/></svg>
+                <div><div class="weapon__aspect">Aspect du mouvement</div><h3 class="weapon__name">Coronacht</h3><div class="weapon__tool">GSAP · Motion</div></div>
+              </div>
+              <div class="weapon__face weapon__face--back">
+                <div class="weapon__aspect">Maîtrise</div>
+                <p>L'arc céleste. Timelines chorégraphiées, ScrollTrigger, SplitText, Flip — à 60 images par seconde.</p>
+                <div class="weapon__meter"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></div>
+              </div>
+            </div>
+          </div>
+          <div class="weapon" data-reveal tabindex="0">
+            <div class="weapon__card">
+              <div class="weapon__face">
+                <svg class="weapon__glyph" viewBox="0 0 70 70"><rect x="10" y="24" width="20" height="30" rx="8"/><rect x="40" y="24" width="20" height="30" rx="8"/><path d="M14 24V14M56 24V14"/></svg>
+                <div><div class="weapon__aspect">Aspect du designer</div><h3 class="weapon__name">Malphon</h3><div class="weapon__tool">Figma</div></div>
+              </div>
+              <div class="weapon__face weapon__face--back">
+                <div class="weapon__aspect">Maîtrise</div>
+                <p>Les poings jumeaux : un pour la maquette, un pour le code. Variables, prototypes, handoff propre.</p>
+                <div class="weapon__meter"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i></div>
+              </div>
+            </div>
+          </div>
+          <div class="weapon" data-reveal tabindex="0">
+            <div class="weapon__card">
+              <div class="weapon__face">
+                <svg class="weapon__glyph" viewBox="0 0 70 70"><path d="M35 6 62 22v26L35 64 8 48V22Z"/><path d="M35 6v58M8 22l54 26M62 22 8 48"/></svg>
+                <div><div class="weapon__aspect">Aspect du shader</div><h3 class="weapon__name">Exagryph</h3><div class="weapon__tool">Three.js · GLSL</div></div>
+              </div>
+              <div class="weapon__face weapon__face--back">
+                <div class="weapon__aspect">Maîtrise</div>
+                <p>Le canon adamantin. Scènes 3D, shaders et particules — à manier avec parcimonie.</p>
+                <div class="weapon__meter"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="cta">
+      <div class="wrap">
+        <span class="eyebrow" data-reveal>Dernière salle</span>
+        <h2 class="cta__title" data-split-lines>Traversons<br><span class="serif">le Styx</span></h2>
+        <a href="contact.html" class="btn btn--blood" data-magnetic data-cursor="Écrire">
+          <span class="btn__inner">Me contacter
+            <svg class="btn__arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 12h16M14 6l6 6-6 6"/></svg>
+          </span>
+        </a>
+      </div>
+    </section>
+
+    <footer class="footer">
+      <div class="wrap">
+        <span>© 2026 David Nazar — contenu factice</span>
+        <div class="footer__links"><a href="index.html">Accueil</a><a href="projets.html">Projets</a><a href="contact.html">Contact</a></div>
+      </div>
+    </footer>
+  </main>
+
+  <div class="toast" role="status" aria-live="polite"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/SplitText.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/Flip.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lenis@1.3.4/dist/lenis.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@barba/core@2.10.3/dist/barba.umd.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
