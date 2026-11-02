@@ -684,7 +684,7 @@
     return new Promise((resolve) => {
       gsap.timeline({ onComplete: () => loader.remove() })
         .to(shapes, { strokeDashoffset: 0, duration: 1.6, stagger: 0.12, ease: 'power2.inOut' }, 0)
-        .to(o, { v: 100, duration: 2.1, ease: 'power3.inOut', onUpdate: () => { count.textContent = String(Math.round(o.v)).padStart(3, '0'); } }, 0)
+        .to(o, { v: 100, duration: 2.1, ease: 'power3.inOut', onUpdate: () => { count.dataset.count = String(Math.round(o.v)).padStart(3, '0'); } }, 0)
         .fromTo('.loader__name', { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 1.4, ease: 'expo.out' }, 0.9)
         .to('.loader__sigil', { rotate: 180, scale: 0.85, duration: 1.1, ease: 'expo.inOut' }, 1.9)
         .to('.loader__center', { opacity: 0, scale: 0.9, duration: 0.5, ease: 'power2.in' }, 2.6)

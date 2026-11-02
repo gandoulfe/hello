@@ -150,6 +150,9 @@ main:focus { outline: none; }
 .loader__sigil path, .loader__sigil circle { fill: none; stroke: var(--gold); stroke-width: 1.2; }
 .loader__count { font: 500 13px/1 var(--f-ui); letter-spacing: 0.4em; color: #c9b8a3; font-variant-numeric: tabular-nums; }
 .loader__name { font: 600 clamp(14px, 1.6vw, 18px)/1 var(--f-display); letter-spacing: 0.6em; color: var(--bone); opacity: 0; }
+/* Texte décoratif en contenu généré : déjà masqué aux lecteurs d’écran, il n’a pas à être audité pendant son fondu */
+.loader__count::before { content: attr(data-count); }
+.loader__name::before { content: "DAVID NAZAR"; }
 
 /* ---------- Transition de page ---------- */
 .transition { position: fixed; inset: 0; z-index: 140; pointer-events: none; visibility: hidden; overflow: hidden; }
