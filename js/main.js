@@ -869,11 +869,16 @@
     // Castlevania : les portes du château se referment dans un fracas
     gates: {
       layer: gates,
-      cover: (tl) => tl
-        .fromTo(gateTop, { yPercent: -100 }, { yPercent: 0, duration: 0.85, ease: 'power4.in' }, 0)
-        .fromTo(gateBottom, { yPercent: 100 }, { yPercent: 0, duration: 0.85, ease: 'power4.in' }, 0)
-        .fromTo(seam, { scaleX: 0, opacity: 1 }, { scaleX: 1, duration: 0.6, ease: 'expo.out' }, 0.82)
-        .fromTo([gateTop, gateBottom], { y: 0 }, { y: (i) => (i ? 5 : -5), duration: 0.08, repeat: 3, yoyo: true, ease: 'none' }, 0.85),
+      cover: (tl) => {
+        // La jointure tombe sur le filet sous le titre : elle ne barre jamais le texte
+        const r = tLine.getBoundingClientRect();
+        gates.style.setProperty('--seam-y', `${Math.round(r.top + r.height / 2)}px`);
+        return tl
+          .fromTo(gateTop, { yPercent: -100 }, { yPercent: 0, duration: 0.85, ease: 'power4.in' }, 0)
+          .fromTo(gateBottom, { yPercent: 100 }, { yPercent: 0, duration: 0.85, ease: 'power4.in' }, 0)
+          .fromTo(seam, { scaleX: 0, opacity: 1 }, { scaleX: 1, duration: 0.6, ease: 'expo.out' }, 0.82)
+          .fromTo([gateTop, gateBottom], { y: 0 }, { y: (i) => (i ? 5 : -5), duration: 0.08, repeat: 3, yoyo: true, ease: 'none' }, 0.85);
+      },
       uncover: (tl) => tl
         .to(seam, { opacity: 0, scaleY: 8, duration: 0.5 }, 0.2)
         .to(gateTop, { yPercent: -100, duration: 1.1, ease: 'expo.inOut' }, 0.25)
