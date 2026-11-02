@@ -475,6 +475,15 @@
         });
       }
 
+      // Tactile : pas de survol possible, la carte centrée dans le carrousel s'anime toute seule
+      if (!fine) {
+        const io = new IntersectionObserver((entries) =>
+          entries.forEach((e) => e.target.classList.toggle('is-live', e.intersectionRatio >= 0.7)),
+        { root: $('.boons__track', c), threshold: [0, 0.7, 1] });
+        $$('.boon', c).forEach((b) => io.observe(b));
+        cleanups.push(() => io.disconnect());
+      }
+
       // Bénédictions : scroll horizontal épinglé
       const mm = gsap.matchMedia();
       cleanups.push(() => mm.revert());
@@ -708,7 +717,7 @@
   }
 
   /* ==========================================================================
-     Transition de page — panneaux obliques + carte titre façon Hades
+     Transitions de page — quatre rideaux tirés au hasard, une carte titre commune
      ========================================================================== */
   const T = $('.transition');
   const panels = $$('.transition__panel', T);
@@ -720,7 +729,83 @@
   let titleSplit = null;
   gsap.set(panels, { skewX: -14, xPercent: -110 });
 
+  // Calques des autres rideaux, générés ici pour garder la coquille HTML légère
+  const el = (cls, parent) => { const d = document.createElement('div'); d.className = cls; parent?.append(d); return d; };
+  const gates = el('transition__layer transition__gates');
+  const gateTop = el('transition__gate transition__gate--top', gates);
+  const gateBottom = el('transition__gate transition__gate--bottom', gates);
+  const seam = el('transition__seam', gates);
+  const iris = el('transition__layer transition__iris-wrap');
+  const irisGold = el('transition__iris transition__iris--gold', iris);
+  const irisInk = el('transition__iris transition__iris--ink', iris);
+  const blinds = el('transition__layer transition__blinds');
+  const blindStrips = Array.from({ length: 8 }, () => el('transition__blind', blinds));
+  T.insertBefore(gates, card);
+  T.insertBefore(iris, card);
+  T.insertBefore(blinds, card);
+
+  // Dernier point de clic : l'iris s'ouvre depuis le lien cliqué
+  let lastPointer = null;
+  addEventListener('pointerdown', (e) => { lastPointer = { x: e.clientX, y: e.clientY }; }, { passive: true });
+
+  const VARIANTS = {
+    // Hades : panneaux obliques or / sang / encre
+    hades: {
+      layer: panels,
+      cover: (tl) => tl.fromTo(panels, { xPercent: -110 }, { xPercent: 0, duration: 1.05, ease: 'expo.inOut', stagger: 0.09 }, 0),
+      uncover: (tl) => tl.to(panels, { xPercent: 110, duration: 1.15, ease: 'expo.inOut', stagger: { each: 0.08, from: 'end' } }, 0.2),
+    },
+    // Castlevania : les portes du château se referment dans un fracas
+    gates: {
+      layer: gates,
+      cover: (tl) => tl
+        .fromTo(gateTop, { yPercent: -100 }, { yPercent: 0, duration: 0.85, ease: 'power4.in' }, 0)
+        .fromTo(gateBottom, { yPercent: 100 }, { yPercent: 0, duration: 0.85, ease: 'power4.in' }, 0)
+        .fromTo(seam, { scaleX: 0, opacity: 1 }, { scaleX: 1, duration: 0.6, ease: 'expo.out' }, 0.82)
+        .fromTo([gateTop, gateBottom], { y: 0 }, { y: (i) => (i ? 5 : -5), duration: 0.08, repeat: 3, yoyo: true, ease: 'none' }, 0.85),
+      uncover: (tl) => tl
+        .to(seam, { opacity: 0, scaleY: 8, duration: 0.5 }, 0.2)
+        .to(gateTop, { yPercent: -100, duration: 1.1, ease: 'expo.inOut' }, 0.25)
+        .to(gateBottom, { yPercent: 100, duration: 1.1, ease: 'expo.inOut' }, 0.25),
+    },
+    // Hades II : une éclipse s'ouvre depuis le point cliqué, puis se referme au centre
+    iris: {
+      layer: iris,
+      cover: (tl) => {
+        const { x, y } = lastPointer || { x: innerWidth / 2, y: innerHeight / 2 };
+        const r = Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y)) + 20;
+        return tl
+          .fromTo(irisGold, { clipPath: `circle(0px at ${x}px ${y}px)` }, { clipPath: `circle(${r}px at ${x}px ${y}px)`, duration: 1, ease: 'expo.inOut' }, 0)
+          .fromTo(irisInk, { clipPath: `circle(0px at ${x}px ${y}px)` }, { clipPath: `circle(${r}px at ${x}px ${y}px)`, duration: 1, ease: 'expo.inOut' }, 0.1);
+      },
+      uncover: (tl) => {
+        const c = `${innerWidth / 2}px ${innerHeight / 2}px`;
+        const r = Math.hypot(innerWidth, innerHeight) / 2 + 20;
+        return tl
+          .fromTo(irisInk, { clipPath: `circle(${r}px at ${c})` }, { clipPath: `circle(0px at ${c})`, duration: 1, ease: 'expo.inOut' }, 0.2)
+          .fromTo(irisGold, { clipPath: `circle(${r}px at ${c})` }, { clipPath: `circle(0px at ${c})`, duration: 1, ease: 'expo.inOut' }, 0.3);
+      },
+    },
+    // Vitraux : des lames tombent en cascade puis s'effacent depuis le centre
+    blinds: {
+      layer: blinds,
+      cover: (tl) => tl.fromTo(blindStrips, { scaleY: 0, transformOrigin: '50% 0%' }, { scaleY: 1, duration: 0.75, ease: 'expo.inOut', stagger: { each: 0.05, from: 'edges' } }, 0),
+      uncover: (tl) => tl.fromTo(blindStrips, { scaleY: 1, transformOrigin: '50% 100%' }, { scaleY: 0, duration: 0.8, ease: 'expo.inOut', stagger: { each: 0.05, from: 'center' } }, 0.2),
+    },
+  };
+  const ALL_LAYERS = Object.values(VARIANTS).flatMap((v) => [v.layer].flat());
+  let variant = VARIANTS.hades;
+  let lastKey = null;
+  const pickVariant = () => {
+    const keys = Object.keys(VARIANTS).filter((k) => k !== lastKey); // jamais deux fois la même d'affilée
+    lastKey = keys[(Math.random() * keys.length) | 0];
+    return VARIANTS[lastKey];
+  };
+
   function cover(info, current) {
+    variant = pickVariant();
+    gsap.set(ALL_LAYERS, { visibility: 'hidden' });
+    gsap.set([variant.layer].flat(), { visibility: 'visible' });
     tNum.textContent = info.num;
     titleSplit?.revert();
     tTitle.textContent = info.title;
@@ -729,11 +814,12 @@
     gsap.set(card, { opacity: 1, y: 0 });
     gsap.set(current, { transformOrigin: `50% ${scrollY + innerHeight / 2}px` });
 
-    return gsap.timeline()
+    const tl = gsap.timeline()
       .set(T, { visibility: 'visible' })
       .to(current, { scale: 0.93, opacity: 0.25, filter: 'blur(6px)', duration: 0.95, ease: 'expo.inOut' }, 0)
-      .fromTo(panels, { xPercent: -110 }, { xPercent: 0, duration: 1.05, ease: 'expo.inOut', stagger: 0.09 }, 0)
-      .add(() => burst(1), 0.45)
+      .add(() => burst(1), 0.45);
+    variant.cover(tl);
+    return tl
       .fromTo(tNum, { opacity: 0, y: 20, letterSpacing: '1.4em' }, { opacity: 1, y: 0, letterSpacing: '0.5em', duration: 0.9, ease: 'expo.out' }, 0.8)
       .fromTo(titleSplit.chars, { yPercent: 60, rotate: 8, opacity: 0, filter: 'blur(8px)' }, { yPercent: 0, rotate: 0, opacity: 1, filter: 'blur(0px)', duration: 0.9, stagger: 0.03, ease: 'expo.out' }, 0.82)
       .fromTo(tLine, { scaleX: 0 }, { scaleX: 1, duration: 1, ease: 'expo.inOut' }, 0.85)
@@ -742,10 +828,9 @@
   }
 
   function uncover() {
-    return gsap.timeline()
-      .to(card, { opacity: 0, y: -40, duration: 0.5, ease: 'power2.in' })
-      .to(panels, { xPercent: 110, duration: 1.15, ease: 'expo.inOut', stagger: { each: 0.08, from: 'end' } }, 0.2)
-      .set(T, { visibility: 'hidden' });
+    const tl = gsap.timeline().to(card, { opacity: 0, y: -40, duration: 0.5, ease: 'power2.in' });
+    variant.uncover(tl);
+    return tl.set(T, { visibility: 'hidden' }).set(ALL_LAYERS, { clearProps: 'visibility' });
   }
 
   /* ==========================================================================
